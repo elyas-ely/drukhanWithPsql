@@ -210,11 +210,16 @@ const getFilteredPost = async (req, res) => {
 // =======================================
 const createPost = async (req, res) => {
   try {
-    const postData = req.body
-    const image = req.file
+    const post = req.body
+    const imagePath = req.file
 
-    if (!postData?.car_name) {
+    if (!post?.car_name || !imagePath) {
       res.status(400).json({ message: 'post details are required' })
+    }
+
+    const postData = {
+      ...post,
+      images: [imagePath],
     }
 
     const newPost = await createPostFn(postData)

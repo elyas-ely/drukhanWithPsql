@@ -34,12 +34,12 @@ router.get('/:postId', getPostById)
 // =======================================
 // ============== POST ROUTES ============
 // =======================================
-router.post('/', upload.single('image'), createPost)
+router.post('/', upload.single('file'), createPost)
 
 // =======================================
 // ============== PUT ROUTES =============
 // =======================================
-router.put('/:postId', upload.single('image'), updatePost)
+router.put('/:postId', upload.single('file'), updatePost)
 router.put('/saves/:postId', updateSave)
 router.put('/likes/:postId', updateLike)
 router.put('/viewed/:postId', updateViewedPosts)

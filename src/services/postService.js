@@ -201,6 +201,7 @@ const createPostFn = async (postData) => {
     engine = null,
     side = null,
     popular = false,
+    images = [],
     userId,
   } = postData
 
@@ -217,9 +218,10 @@ const createPostFn = async (postData) => {
         engine,
         popular,
         side,
+        images, 
         user_id 
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *`,
     [
       car_name,
@@ -233,6 +235,7 @@ const createPostFn = async (postData) => {
       engine,
       popular,
       side,
+      images,
       userId,
     ]
   )
