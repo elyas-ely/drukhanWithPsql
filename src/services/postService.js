@@ -4,7 +4,7 @@ import { logger } from '../utils/logger.js'
 // =======================================
 // ============== GET ALL POSTS ==========
 // =======================================
-const getAllPostsFn = async (userId) => {
+const getAllPostsFn = async (userId, limit = 12, offset = 0) => {
   const result = await client.query(
     `SELECT 
       posts.*, 
@@ -16,8 +16,9 @@ const getAllPostsFn = async (userId) => {
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id)::BOOLEAN AS save_status
     FROM posts
     INNER JOIN users u ON posts.user_id = u.user_id
-    ORDER BY posts.created_at DESC`,
-    [userId]
+    ORDER BY posts.created_at DESC
+    LIMIT $2 OFFSET $3`,
+    [userId, limit, offset]
   )
 
   return result.rows
@@ -67,7 +68,7 @@ const getPostByIdFn = async (postId, userId) => {
 // =======================================
 // ============== GET POST BY ID =========
 // =======================================
-const getSavedPostFn = async (userId) => {
+const getSavedPostFn = async (userId, limit, offset) => {
   const result = await client.query(
     `SELECT 
       p.*, 
@@ -77,8 +78,9 @@ const getSavedPostFn = async (userId) => {
     FROM posts p
     JOIN saves s ON p.id = s.post_id
     WHERE s.user_id = $1
-    ORDER BY p.created_at DESC;`,
-    [userId]
+    ORDER BY s.created_at DESC
+    LIMIT $2 OFFSET $3;`,
+    [userId, limit, offset]
   )
   return result.rows
 }
@@ -169,7 +171,7 @@ const getFilteredPostFn = async (filters, userId) => {
 // =======================================
 // ========= GET POSTS BY USER ID ========
 // =======================================
-const getPostsByUserIdFn = async (userId, myId) => {
+const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
   const result = await client.query(
     `SELECT 
       p.*, 
@@ -179,8 +181,9 @@ const getPostsByUserIdFn = async (userId, myId) => {
     FROM posts p
     JOIN users u ON p.user_id = u.user_id
     WHERE p.user_id = $1
-    ORDER BY p.created_at DESC`,
-    [userId, myId]
+    ORDER BY p.created_at DESC
+    LIMIT $3 OFFSET $4`,
+    [userId, myId, limit, offset]
   )
   return result.rows
 }

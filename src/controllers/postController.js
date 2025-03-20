@@ -21,18 +21,21 @@ import { logger } from '../utils/logger.js'
 // =======================================
 const getAllPosts = async (req, res) => {
   const userId = req.query?.userId
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
 
   if (!userId) {
-    res.status(400).json({ error: 'User ID is required' })
+    return res.status(400).json({ error: 'User ID is required' })
   }
+
   try {
-    const posts = await getAllPostsFn(userId)
+    const posts = await getAllPostsFn(userId, limit, offset)
 
-    if (posts.length === 0) {
-      return res.status(404).json({ message: 'No posts found' })
-    }
-
-    res.status(200).json(posts)
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1, // If posts are less than limit, no next page
+    })
   } catch (err) {
     console.error('Error in getAllPosts:', err)
     res.status(500).json({ error: 'Failed to retrieve posts' })
@@ -93,20 +96,24 @@ const getPostById = async (req, res) => {
 // =======================================
 const getSavesPost = async (req, res) => {
   const userId = req.params?.userId
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
 
   if (!userId) {
-    return res.status(400).json({ error: 'User ID are required' })
+    return res.status(400).json({ error: 'User ID is required' })
   }
 
   try {
-    const post = await getSavedPostFn(userId)
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' })
-    }
-    res.status(200).json(post)
+    const posts = await getSavedPostFn(userId, limit, offset)
+
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1, // Indicate if more pages exist
+    })
   } catch (err) {
     console.error('Error in getSavesPost:', err)
-    res.status(500).json({ error: 'Failed to retrieve post' })
+    res.status(500).json({ error: 'Failed to retrieve saved posts' })
   }
 }
 
@@ -157,17 +164,23 @@ const getSearchPosts = async (req, res) => {
 const getPostsByUserId = async (req, res) => {
   const userId = req.params?.userId
   const myId = req.query?.myId
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
 
   if (!userId || !myId) {
     return res.status(400).json({ error: 'User ID is required' })
   }
 
   try {
-    const posts = await getPostsByUserIdFn(userId, myId)
+    const posts = await getPostsByUserIdFn(userId, myId, limit, offset)
     if (posts.length === 0) {
       return res.status(404).json({ message: 'No posts found for this user' })
     }
-    res.status(200).json(posts)
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1,
+    })
   } catch (err) {
     console.error('Error in getPostsByUserId:', err)
     res
@@ -210,16 +223,10 @@ const getFilteredPost = async (req, res) => {
 // =======================================
 const createPost = async (req, res) => {
   try {
-    const post = req.body
-    const imagePath = req.file
+    const postData = req.body
 
-    if (!post?.car_name || !imagePath) {
+    if (!postData?.car_name) {
       res.status(400).json({ message: 'post details are required' })
-    }
-
-    const postData = {
-      ...post,
-      images: [imagePath],
     }
 
     const newPost = await createPostFn(postData)
