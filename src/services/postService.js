@@ -122,10 +122,10 @@ const getSearchPostsFn = async (searchTerm) => {
 // =======================================
 // ============== GET FILTERED POST  =====
 // =======================================
-const getFilteredPostFn = async (filters, userId) => {
+const getFilteredPostFn = async (filters, userId, limit, offset) => {
   try {
     const queryParts = []
-    const queryParams = [userId] // Add userId as the first parameter
+    const queryParams = [userId] // userId is always the first parameter
 
     const filterConditions = {
       car_name: (value) => `car_name ILIKE $${queryParams.push(`${value}%`)}`,
@@ -138,14 +138,12 @@ const getFilteredPostFn = async (filters, userId) => {
       transmission: (value) => `transmission = $${queryParams.push(value)}`,
     }
 
-    // Apply filters dynamically
     Object.entries(filters).forEach(([key, value]) => {
       if (filterConditions[key] && value !== undefined && value !== '') {
         queryParts.push(filterConditions[key](value))
       }
     })
 
-    // If no filters were applied, return an empty array early
     if (queryParts.length === 0) {
       console.log('No valid filters applied, returning empty array.')
       return []
@@ -159,6 +157,7 @@ const getFilteredPostFn = async (filters, userId) => {
       FROM posts
       WHERE ${queryParts.join(' AND ')}
       ORDER BY car_name ASC, created_at DESC
+      LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
     `
 
     const result = await client.query(query, queryParams)
@@ -168,6 +167,7 @@ const getFilteredPostFn = async (filters, userId) => {
     throw new Error(`Failed to fetch filtered posts: ${error.message}`)
   }
 }
+
 // =======================================
 // ========= GET POSTS BY USER ID ========
 // =======================================

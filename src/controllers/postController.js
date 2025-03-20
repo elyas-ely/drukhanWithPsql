@@ -195,6 +195,9 @@ const getPostsByUserId = async (req, res) => {
 const getFilteredPost = async (req, res) => {
   const userId = req.query?.userId
   const filters = req.query
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
 
   if (!filters?.car_name || !userId) {
     return res
@@ -203,18 +206,15 @@ const getFilteredPost = async (req, res) => {
   }
 
   try {
-    const posts = await getFilteredPostFn(filters, userId)
-    if (posts.length === 0) {
-      return res
-        .status(404)
-        .json({ message: 'No posts found (getFilteredPost)' })
-    }
-    res.status(200).json(posts)
+    const posts = await getFilteredPostFn(filters, userId, limit, offset)
+
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1, // Only add nextPage if there are more results
+    })
   } catch (err) {
-    console.error('Error in getPostsByUserId:', err)
-    res
-      .status(500)
-      .json({ error: 'Failed to retrieve user posts (getFilteredPost)' })
+    console.error('Error in getFilteredPost:', err)
+    res.status(500).json({ error: 'Failed to retrieve filtered posts' })
   }
 }
 
