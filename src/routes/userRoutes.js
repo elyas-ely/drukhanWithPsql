@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   getAllUsers,
+  getSearchUsers,
   getUserById,
   getViewedUsers,
   createUser,
@@ -15,6 +16,7 @@ const router = express.Router()
 // ============== GET ROUTES =============
 // =======================================
 router.get('/', getAllUsers)
+router.get('/search', getSearchUsers)
 router.get('/:userId', getUserById)
 router.get('/viewed/:userId', getViewedUsers)
 

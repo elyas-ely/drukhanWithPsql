@@ -6,6 +6,7 @@ import {
   createUserFn,
   deleteUserFn,
   updateViewedUsersFn,
+  getSearchUsersFn,
 } from '../services/userService.js'
 import { logger } from '../utils/logger.js'
 
@@ -13,9 +14,34 @@ import { logger } from '../utils/logger.js'
 // ============= GET ALL USERS ===========
 // =======================================
 const getAllUsers = async (req, res) => {
+  const searchTerm = req.query?.searchTerm || ''
+  const page = parseInt(req.query?.page) || 1
+  const limit = 15
+  const offset = (page - 1) * limit
+
+  try {
+    const users = await getAllUsersFn(searchTerm, limit, offset)
+    if (users.length === 0) {
+      return res.status(200).json({ users: [], nextPage: null })
+    }
+
+    res.status(200).json({
+      users,
+      nextPage: users.length === limit ? page + 1 : null,
+    })
+  } catch (err) {
+    console.error('Error in getAllUsers:', err)
+    res.status(500).json({ error: 'Failed to retrieve users' })
+  }
+}
+
+// =======================================
+// ============= GET SEARCH USERS ===========
+// =======================================
+const getSearchUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm
   try {
-    const users = await getAllUsersFn(searchTerm)
+    const users = await getSearchUsersFn(searchTerm)
     if (users.length === 0) {
       return res.status(404).json({ message: 'No users found' })
     }
@@ -70,7 +96,6 @@ const createUser = async (req, res) => {
 
   try {
     await createUserFn(userData)
-    logger.warning('User created successfully')
     res.status(201).json({ message: 'User created successfully' })
   } catch (err) {
     console.error('Error in createUser:', err)
@@ -148,6 +173,7 @@ const deleteUser = async (req, res) => {
 
 export {
   getAllUsers,
+  getSearchUsers,
   getViewedUsers,
   createUser,
   getUserById,

@@ -107,13 +107,14 @@ const getViewedPostFn = async (userId) => {
 // =======================================
 // ============ GET ALL USERS ============
 // =======================================
-const getSearchPostsFn = async (searchTerm) => {
+const getSearchPostsFn = async (searchTerm, limit = 10) => {
   const result = await client.query(
     `SELECT id, car_name 
        FROM posts 
        WHERE car_name ILIKE $1
-       ORDER BY car_name ASC, created_at DESC`,
-    [`${searchTerm}%`] // Properly parameterized query to prevent SQL injection
+       ORDER BY car_name ASC, created_at DESC
+       LIMIT $2`,
+    [`${searchTerm}%`, limit]
   )
 
   return result.rows

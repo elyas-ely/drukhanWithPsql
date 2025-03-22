@@ -3,14 +3,31 @@ import { client } from '../config/db.js'
 // =======================================
 // ============ GET ALL USERS ============
 // =======================================
-const getAllUsersFn = async (searchTerm) => {
+const getAllUsersFn = async (searchTerm, limit, offset) => {
   const result = await client.query(
     `SELECT * 
     FROM users 
     WHERE 'seller' = ANY(label) 
       AND username ILIKE $1 || '%'  
-    ORDER BY username ASC, created_at DESC`,
-    [`${searchTerm}`]
+    ORDER BY username ASC, created_at DESC
+    LIMIT $2 OFFSET $3`,
+    [`${searchTerm}`, limit, offset]
+  )
+  return result.rows
+}
+
+// =======================================
+// ============ GET SEARCH USERS ============
+// =======================================
+const getSearchUsersFn = async (searchTerm, limit = 6) => {
+  const result = await client.query(
+    `SELECT * 
+    FROM users 
+    WHERE 'seller' = ANY(label) 
+      AND username ILIKE $1 || '%'  
+    ORDER BY username ASC, created_at DESC
+    LIMIT $2`,
+    [`${searchTerm}`, limit]
   )
   return result.rows
 }
@@ -45,7 +62,7 @@ const getViewedUsersFn = async (userId) => {
 // =======================================
 const createUserFn = async (userData) => {
   const {
-    user_id,
+    userId,
     username,
     email,
     bio = null,
@@ -61,19 +78,20 @@ const createUserFn = async (userData) => {
     address = null,
     whatsapp = null,
     x = null,
+    seller = false,
   } = userData
 
   const query = `
     INSERT INTO users (
       user_id, username, email, bio, city, background, profile,
       facebook, lat, lng, phone_number1, phone_number2, phone_number3,
-      address, whatsapp, x
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      address, whatsapp, x, seller
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *
   `
 
   const values = [
-    user_id,
+    userId,
     username,
     email,
     bio,
@@ -89,6 +107,7 @@ const createUserFn = async (userData) => {
     address,
     whatsapp,
     x,
+    seller,
   ]
 
   await client.query(query, values)
@@ -190,6 +209,7 @@ const deleteUserFn = async (userId) => {
 
 export {
   getAllUsersFn,
+  getSearchUsersFn,
   getUserByIdFn,
   getViewedUsersFn,
   createUserFn,
