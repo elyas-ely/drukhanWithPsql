@@ -87,8 +87,7 @@ const createUserFn = async (userData) => {
       facebook, lat, lng, phone_number1, phone_number2, phone_number3,
       address, whatsapp, x, seller
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-    RETURNING *
-  `
+    RETURNING *`
 
   const values = [
     userId,
