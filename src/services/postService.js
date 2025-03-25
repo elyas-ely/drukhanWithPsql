@@ -131,6 +131,7 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
     const filterConditions = {
       car_name: (value) => `car_name ILIKE $${queryParams.push(`${value}%`)}`,
       conditions: (value) => `conditions = $${queryParams.push(value)}`,
+      color: (value) => `color = $${queryParams.push(value)}`,
       engine: (value) => `engine = $${queryParams.push(value)}`,
       fuel_type: (value) => `fuel_type = $${queryParams.push(value)}`,
       model: (value) => `model = $${queryParams.push(value)}`,
