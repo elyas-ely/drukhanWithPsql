@@ -31,7 +31,7 @@ const getPopularPostsFn = async (userId) => {
   const result = await client.query(
     `SELECT 
       posts.*, 
-      (SELECT COUNT(*) FROM likes l WHERE l.post_id = posts.id) AS likes_count,
+      (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
       EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = posts.id) AS like_status,
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id) AS save_status
     FROM posts
@@ -53,7 +53,8 @@ const getPostByIdFn = async (postId, userId) => {
       u.username, 
       u.profile, 
       u.city,
-      (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes_count,
+   
+       (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
       EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id) AS like_status,
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id) AS save_status
     FROM posts p
