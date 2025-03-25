@@ -126,7 +126,7 @@ const getSearchPostsFn = async (searchTerm, limit = 10) => {
 const getFilteredPostFn = async (filters, userId, limit, offset) => {
   try {
     const queryParts = []
-    const queryParams = [userId] // userId is always the first parameter
+    const queryParams = [userId]
 
     const filterConditions = {
       car_name: (value) => `car_name ILIKE $${queryParams.push(`${value}%`)}`,
@@ -135,7 +135,8 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       engine: (value) => `engine = $${queryParams.push(value)}`,
       fuel_type: (value) => `fuel_type = $${queryParams.push(value)}`,
       model: (value) => `model = $${queryParams.push(value)}`,
-      price: (value) => `price <= $${queryParams.push(value)}`,
+      minPrice: (value) => `price >= $${queryParams.push(value)}`,
+      maxPrice: (value) => `price <= $${queryParams.push(value)}`,
       side: (value) => `side = $${queryParams.push(value)}`,
       transmission: (value) => `transmission = $${queryParams.push(value)}`,
     }
