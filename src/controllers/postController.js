@@ -342,9 +342,10 @@ const updateViewedPosts = async (req, res) => {
 // =======================================
 const deletePost = async (req, res) => {
   const postId = req.params?.postId
+  const userId = req.query?.userId
 
-  if (!postId) {
-    return res.status(400).json({ error: 'Post ID is required' })
+  if (!postId || !userId) {
+    return res.status(400).json({ error: 'Post ID and User ID are required' })
   }
 
   try {

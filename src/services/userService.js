@@ -7,7 +7,7 @@ const getAllUsersFn = async (searchTerm, limit, offset) => {
   const result = await client.query(
     `SELECT * 
     FROM users 
-    WHERE 'seller' = ANY(label) 
+    WHERE seller = true
       AND username ILIKE $1 || '%'  
     ORDER BY username ASC, created_at DESC
     LIMIT $2 OFFSET $3`,
@@ -23,7 +23,7 @@ const getSearchUsersFn = async (searchTerm, limit = 6) => {
   const result = await client.query(
     `SELECT * 
     FROM users 
-    WHERE 'seller' = ANY(label) 
+    WHERE seller = true
       AND username ILIKE $1 || '%'  
     ORDER BY username ASC, created_at DESC
     LIMIT $2`,

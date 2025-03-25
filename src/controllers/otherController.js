@@ -37,11 +37,9 @@ const getAllNotifications = async (req, res) => {
     res.status(200).json(notificaitons)
   } catch (err) {
     console.error('Error in getAllNotificationsFn:', err)
-    res
-      .status(500)
-      .json({
-        error: 'Failed to retrieve notificaitons (getAllNotificationsFn)',
-      })
+    res.status(500).json({
+      error: 'Failed to retrieve notificaitons (getAllNotificationsFn)',
+    })
   }
 }
 export { getAllBanners, getAllNotifications }
