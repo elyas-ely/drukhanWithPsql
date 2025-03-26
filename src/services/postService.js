@@ -204,12 +204,12 @@ const createPostFn = async (postData) => {
     fuel_type,
     color,
     information,
+    userId,
     conditions = null,
     engine = null,
     side = null,
     popular = false,
     images = [],
-    userId,
   } = postData
 
   const result = await client.query(
@@ -247,7 +247,7 @@ const createPostFn = async (postData) => {
     ]
   )
 
-  return result.rows[0] // Return the inserted row
+  return result.rows[0]
 }
 
 // =======================================
