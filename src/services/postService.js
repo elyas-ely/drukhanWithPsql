@@ -25,7 +25,7 @@ const getAllPostsFn = async (userId, limit = 12, offset = 0) => {
 }
 
 // =======================================
-// ============== GET POPULAR POSTS ==========
+// ============== GET POPULAR POSTS ======
 // =======================================
 const getPopularPostsFn = async (userId) => {
   const result = await client.query(
@@ -290,7 +290,7 @@ const updatePostFn = async (postId, postData) => {
 }
 
 // =======================================
-// ============== UPDATE SAVE POST ============
+// ============== UPDATE SAVE POST =======
 // =======================================
 const updateSaveFn = async (userId, postId) => {
   // Check if the post is already saved
@@ -317,7 +317,7 @@ const updateSaveFn = async (userId, postId) => {
 }
 
 // =======================================
-// ============== UPDATE LIKE POST ============
+// ============== UPDATE LIKE POST =======
 // =======================================
 const updateLikeFn = async (userId, postId) => {
   // Check if the post is already saved
