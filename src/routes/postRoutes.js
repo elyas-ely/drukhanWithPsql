@@ -1,5 +1,5 @@
 import express from 'express'
-import upload from '../middlewares/uploadMiddleware.js'
+
 import {
   getAllPosts,
   getPopularPosts,
@@ -34,12 +34,11 @@ router.get('/:postId', getPostById)
 // =======================================
 // ============== POST ROUTES ============
 // =======================================
-router.post('/', upload.single('file'), createPost)
 
 // =======================================
 // ============== PUT ROUTES =============
 // =======================================
-router.put('/:postId', upload.single('file'), updatePost)
+router.put('/:postId', updatePost)
 router.put('/saves/:postId', updateSave)
 router.put('/likes/:postId', updateLike)
 router.put('/viewed/:postId', updateViewedPosts)

@@ -172,26 +172,48 @@ const updateUserFn = async (userId, userData) => {
 // ============== UPDATE VIEWED USERS ====
 // =======================================
 const updateViewedUsersFn = async (userId, otherId) => {
-  // Check if the post is already viewed
-  const { rows } = await client.query(
-    `SELECT * FROM viewed_users WHERE user_id = $1 AND viewed_user_id = $2`,
-    [userId, otherId]
-  )
+  try {
+    await client.query('BEGIN')
 
-  if (rows.length > 0) {
-    // If already viewed, update the timestamp
-    await client.query(
-      `UPDATE viewed_users SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND viewed_user_id = $2`,
+    // Check if the user is already viewed
+    const { rows } = await client.query(
+      `SELECT * FROM viewed_users WHERE user_id = $1 AND viewed_user_id = $2`,
       [userId, otherId]
     )
-    return { message: 'updated' }
-  } else {
-    // If not viewed, save it
+
+    if (rows.length > 0) {
+      // If already viewed, update the timestamp
+      await client.query(
+        `UPDATE viewed_users SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND viewed_user_id = $2`,
+        [userId, otherId]
+      )
+    } else {
+      // Insert the new viewed user
+      await client.query(
+        `INSERT INTO viewed_users (user_id, viewed_user_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
+        [userId, otherId]
+      )
+    }
+
+    // Ensure the user has a maximum of 5 viewed users
     await client.query(
-      `INSERT INTO viewed_users (user_id, viewed_user_id) VALUES ($1, $2) RETURNING *`,
-      [userId, otherId]
+      `DELETE FROM viewed_users 
+       WHERE user_id = $1 
+       AND viewed_user_id NOT IN (
+         SELECT viewed_user_id FROM viewed_users 
+         WHERE user_id = $1 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       )`,
+      [userId]
     )
-    return { message: 'viewed' }
+
+    await client.query('COMMIT')
+    return { message: rows.length > 0 ? 'updated' : 'viewed' }
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('Error updating viewed users:', error)
+    throw error
   }
 }
 

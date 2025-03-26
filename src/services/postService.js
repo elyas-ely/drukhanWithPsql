@@ -347,26 +347,48 @@ const updateLikeFn = async (userId, postId) => {
 // ============== UPDATE VIEWED POST =====
 // =======================================
 const updateViewedPostsFn = async (userId, postId) => {
-  // Check if the post is already viewed
-  const { rows } = await client.query(
-    `SELECT * FROM viewed_posts WHERE user_id = $1 AND post_id = $2`,
-    [userId, postId]
-  )
+  try {
+    await client.query('BEGIN')
 
-  if (rows.length > 0) {
-    // If already viewed, update the timestamp
-    await client.query(
-      `UPDATE viewed_posts SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND post_id = $2`,
+    // Check if the post is already viewed
+    const { rows } = await client.query(
+      `SELECT * FROM viewed_posts WHERE user_id = $1 AND post_id = $2`,
       [userId, postId]
     )
-    return { message: 'updated' }
-  } else {
-    // If not viewed, save it
+
+    if (rows.length > 0) {
+      // If already viewed, update the timestamp
+      await client.query(
+        `UPDATE viewed_posts SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      )
+    } else {
+      // Insert the new viewed post
+      await client.query(
+        `INSERT INTO viewed_posts (user_id, post_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
+        [userId, postId]
+      )
+    }
+
+    // Ensure the user has a maximum of 5 viewed posts
     await client.query(
-      `INSERT INTO viewed_posts (user_id, post_id) VALUES ($1, $2) RETURNING *`,
-      [userId, postId]
+      `DELETE FROM viewed_posts 
+       WHERE user_id = $1 
+       AND post_id NOT IN (
+         SELECT post_id FROM viewed_posts 
+         WHERE user_id = $1 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       )`,
+      [userId]
     )
-    return { message: 'viewed' }
+
+    await client.query('COMMIT')
+    return { message: rows.length > 0 ? 'updated' : 'viewed' }
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('Error updating viewed posts:', error)
+    throw error
   }
 }
 
