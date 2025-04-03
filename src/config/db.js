@@ -6,14 +6,16 @@ import { logger } from '../utils/logger.js'
 dotenv.config()
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 })
 
 const connectDb = async () => {
   try {
-    // Connect to the database
     await client.connect()
-    await client.query('SET search_path TO public')
     logger.info('Connected to the database')
   } catch (err) {
     console.error('Failed to connect to the database:', err)
