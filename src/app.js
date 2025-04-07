@@ -26,7 +26,7 @@ app.use('/others', otherRoutes)
 // Error handling
 app.use(errorHandler)
 
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 3000
 
 app.listen(port, 'localhost', () => {
   logger.info(`Server started on port ${port}`)
