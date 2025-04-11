@@ -154,15 +154,15 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
     }
 
     const query = `
-    SELECT *,
+      SELECT *,
       (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
       EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = posts.id)::BOOLEAN AS like_status,
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id)::BOOLEAN AS save_status
-    FROM posts
-    WHERE ${queryParts.join(' AND ')}
-    ORDER BY created_at DESC, car_name ASC
-    LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
-  `
+      FROM posts
+      WHERE ${queryParts.join(' AND ')}
+      ORDER BY car_name ASC, created_at DESC
+      LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
+    `
 
     const result = await client.query(query, queryParams)
     return result.rows
