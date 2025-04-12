@@ -34,7 +34,7 @@ const getAllPosts = async (req, res) => {
 
     res.status(200).json({
       posts,
-      nextPage: posts.length < limit ? null : page + 1, // If posts are less than limit, no next page
+      nextPage: posts.length < limit ? null : page + 1,
     })
   } catch (err) {
     console.error('Error in getAllPosts:', err)
@@ -210,7 +210,7 @@ const getFilteredPost = async (req, res) => {
 
     res.status(200).json({
       posts,
-      nextPage: posts.length < limit ? null : page + 1, // Only add nextPage if there are more results
+      nextPage: posts.length < limit ? null : page + 1,
     })
   } catch (err) {
     console.error('Error in getFilteredPost:', err)

@@ -21,9 +21,6 @@ const getAllUsers = async (req, res) => {
 
   try {
     const users = await getAllUsersFn(searchTerm, limit, offset)
-    if (users.length === 0) {
-      return res.status(200).json({ users: [], nextPage: null })
-    }
 
     res.status(200).json({
       users,
@@ -83,8 +80,8 @@ const getViewedUsers = async (req, res) => {
     }
     res.status(200).json(user)
   } catch (err) {
-    console.error('Error in getUserById:', err)
-    res.status(500).json({ error: 'Failed to retrieve user' })
+    console.error('Error in getViewedUsers:', err)
+    res.status(500).json({ error: 'Failed to retrieve user (getViewedUsers)' })
   }
 }
 
