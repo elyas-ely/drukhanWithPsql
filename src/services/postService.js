@@ -307,21 +307,21 @@ const updatePostFn = async (postId, postData) => {
 // =======================================
 const updateSaveFn = async (userId, postId) => {
   // Check if the post is already saved
-  const { rows } = await executeQuery(
+  const { rows } = await client.query(
     `SELECT * FROM saves WHERE user_id = $1 AND post_id = $2`,
     [userId, postId]
   )
 
   if (rows.length > 0) {
     // If already saved, delete it
-    await executeQuery(
+    await client.query(
       `DELETE FROM saves WHERE user_id = $1 AND post_id = $2`,
       [userId, postId]
     )
     return { message: 'unsaved' }
   } else {
     // If not saved, save it
-    await executeQuery(
+    await client.query(
       `INSERT INTO saves (user_id, post_id) VALUES ($1, $2) RETURNING *`,
       [userId, postId]
     )
