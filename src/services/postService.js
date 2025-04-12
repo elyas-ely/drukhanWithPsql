@@ -53,17 +53,17 @@ const getPopularPostsFn = async (userId) => {
 // =======================================
 const getPostByIdFn = async (postId, userId) => {
   const query = `SELECT 
-    p.*, 
-    u.username, 
-    u.profile, 
-    u.city,
-   
-     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
-    EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id) AS like_status,
-    EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id) AS save_status
-  FROM posts p
-  INNER JOIN users u ON u.user_id = p.user_id
-  WHERE p.id = $1`
+  p.*, 
+  u.username, 
+  u.profile, 
+  u.city,
+
+   (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
+  EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id) AS like_status,
+  EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id) AS save_status
+FROM posts p
+INNER JOIN users u ON u.user_id = p.user_id
+WHERE p.id = $1`
 
   return await executeQuery(query, [postId, userId])
 }
