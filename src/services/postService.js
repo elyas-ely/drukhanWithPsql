@@ -259,39 +259,47 @@ const createPostFn = async (postData) => {
 // ============== UPDATE POST ============
 // =======================================
 const updatePostFn = async (postId, postData) => {
-  const setClauses = []
-  const values = []
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
 
-  // Iterate over the keys in postData
-  Object.keys(postData).forEach((key, index) => {
-    if (postData[key] !== undefined) {
-      // Ensure the field is provided
-      setClauses.push(`${key} = $${index + 1}`)
-      values.push(postData[key])
+    const setClauses = []
+    const values = []
+    let paramCount = 1
+
+    // Iterate over the keys in postData
+    Object.entries(postData).forEach(([key, value]) => {
+      if (value !== undefined) {
+        setClauses.push(`${key} = $${paramCount}`)
+        values.push(value)
+        paramCount++
+      }
+    })
+
+    // If no fields are provided to update, return early
+    if (setClauses.length === 0) {
+      throw new Error('No fields provided to update.')
     }
-  })
 
-  // If no fields are provided to update, return early or throw an error
-  if (setClauses.length === 0) {
-    throw new Error('No fields provided to update.')
+    // Add the postId as the last value for the WHERE clause
+    values.push(postId)
+
+    // Construct the SQL query dynamically
+    const query = `
+      UPDATE posts
+      SET ${setClauses.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *`
+
+    const result = await connection.query(query, values)
+    await connection.query('COMMIT')
+    return result.rows[0]
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
   }
-
-  // Add the postId as the last value for the WHERE clause
-  values.push(postId)
-
-  // Construct the SQL query dynamically
-  const query = `
-    UPDATE posts
-    SET ${setClauses.join(', ')}
-    WHERE id = $${values.length}
-    RETURNING *
-  `
-
-  // Execute the query
-  const result = await client.query(query, values)
-
-  // Return the updated post
-  return result.rows[0]
 }
 
 // =======================================
