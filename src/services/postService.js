@@ -188,12 +188,24 @@ const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
 // ============== CREATE POST ============
 // =======================================
 const createPostFn = async (postData) => {
-  const connection = await client.connect()
-  try {
-    await connection.query('BEGIN')
+  const {
+    car_name,
+    price,
+    model,
+    transmission,
+    fuel_type,
+    color,
+    information,
+    userId,
+    conditions = null,
+    engine = null,
+    side = null,
+    popular = false,
+    images = [],
+  } = postData
 
-    const insertPostQuery = `
-      INSERT INTO posts (
+  const result = await client.query(
+    `INSERT INTO posts (
         car_name,
         price,
         model,
@@ -209,33 +221,25 @@ const createPostFn = async (postData) => {
         user_id 
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      RETURNING *`
-
-    const postValues = [
-      postData.car_name,
-      postData.price,
-      postData.model,
-      postData.transmission,
-      postData.fuel_type,
-      postData.color,
-      postData.information,
-      postData.conditions,
-      postData.engine,
-      postData.popular,
-      postData.side,
-      postData.images,
-      postData.user_id,
+      RETURNING *`,
+    [
+      car_name,
+      price,
+      model,
+      transmission,
+      fuel_type,
+      color,
+      information,
+      conditions,
+      engine,
+      popular,
+      side,
+      images,
+      userId,
     ]
+  )
 
-    const result = await connection.query(insertPostQuery, postValues)
-    await connection.query('COMMIT')
-    return result.rows[0]
-  } catch (error) {
-    await connection.query('ROLLBACK')
-    throw error
-  } finally {
-    connection.release()
-  }
+  return result.rows[0]
 }
 
 // =======================================
