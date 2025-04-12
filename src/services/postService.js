@@ -306,26 +306,40 @@ const updatePostFn = async (postId, postData) => {
 // ============== UPDATE SAVE POST =======
 // =======================================
 const updateSaveFn = async (userId, postId) => {
-  // Check if the post is already saved
-  const { rows } = await client.query(
-    `SELECT * FROM saves WHERE user_id = $1 AND post_id = $2`,
-    [userId, postId]
-  )
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
 
-  if (rows.length > 0) {
-    // If already saved, delete it
-    await client.query(
-      `DELETE FROM saves WHERE user_id = $1 AND post_id = $2`,
+    // Check if the post is already saved
+    const { rows } = await connection.query(
+      `SELECT * FROM saves WHERE user_id = $1 AND post_id = $2`,
       [userId, postId]
     )
-    return { message: 'unsaved' }
-  } else {
-    // If not saved, save it
-    await client.query(
-      `INSERT INTO saves (user_id, post_id) VALUES ($1, $2) RETURNING *`,
-      [userId, postId]
-    )
-    return { message: 'saved' }
+
+    let result
+    if (rows.length > 0) {
+      // If already saved, delete it
+      await connection.query(
+        `DELETE FROM saves WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      )
+      result = { status: 'unsaved' }
+    } else {
+      // If not saved, save it
+      await connection.query(
+        `INSERT INTO saves (user_id, post_id) VALUES ($1, $2) RETURNING *`,
+        [userId, postId]
+      )
+      result = { status: 'saved' }
+    }
+
+    await connection.query('COMMIT')
+    return result
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
   }
 }
 
