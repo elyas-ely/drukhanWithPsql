@@ -440,11 +440,24 @@ const updateViewedPostsFn = async (userId, postId) => {
 // ============== DELETE POST ============
 // =======================================
 const deletePostFn = async (postId) => {
-  const result = await executeQuery(
-    'DELETE FROM posts WHERE id = $1 RETURNING *',
-    [postId]
-  )
-  return result.rows[0]
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
+
+    // Delete the post
+    const result = await connection.query(
+      'DELETE FROM posts WHERE id = $1 RETURNING *',
+      [postId]
+    )
+
+    await connection.query('COMMIT')
+    return result.rows[0]
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
+  }
 }
 
 export {
