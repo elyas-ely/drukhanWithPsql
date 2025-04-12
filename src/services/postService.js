@@ -347,26 +347,40 @@ const updateSaveFn = async (userId, postId) => {
 // ============== UPDATE LIKE POST =======
 // =======================================
 const updateLikeFn = async (userId, postId) => {
-  // Check if the post is already saved
-  const { rows } = await executeQuery(
-    `SELECT * FROM likes WHERE user_id = $1 AND post_id = $2`,
-    [userId, postId]
-  )
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
 
-  if (rows.length > 0) {
-    // If already saved, delete it
-    await executeQuery(
-      `DELETE FROM likes WHERE user_id = $1 AND post_id = $2`,
+    // Check if the post is already liked
+    const { rows } = await connection.query(
+      `SELECT * FROM likes WHERE user_id = $1 AND post_id = $2`,
       [userId, postId]
     )
-    return { message: 'unliked' }
-  } else {
-    // If not saved, save it
-    await executeQuery(
-      `INSERT INTO likes (user_id, post_id) VALUES ($1, $2) RETURNING *`,
-      [userId, postId]
-    )
-    return { message: 'liked' }
+
+    let result
+    if (rows.length > 0) {
+      // If already liked, delete it
+      await connection.query(
+        `DELETE FROM likes WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      )
+      result = { status: 'unliked' }
+    } else {
+      // If not liked, like it
+      await connection.query(
+        `INSERT INTO likes (user_id, post_id) VALUES ($1, $2) RETURNING *`,
+        [userId, postId]
+      )
+      result = { status: 'liked' }
+    }
+
+    await connection.query('COMMIT')
+    return result
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
   }
 }
 
