@@ -388,35 +388,37 @@ const updateLikeFn = async (userId, postId) => {
 // ============== UPDATE VIEWED POST =====
 // =======================================
 const updateViewedPostsFn = async (userId, postId) => {
+  const connection = await client.connect()
   try {
-    await executeQuery('BEGIN')
+    await connection.query('BEGIN')
 
     // Check if the post is already viewed
-    const { rows } = await executeQuery(
+    const { rows } = await connection.query(
       `SELECT * FROM viewed_posts WHERE user_id = $1 AND post_id = $2`,
       [userId, postId]
     )
 
     if (rows.length > 0) {
       // If already viewed, update the timestamp
-      await executeQuery(
+      await connection.query(
         `UPDATE viewed_posts SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND post_id = $2`,
         [userId, postId]
       )
     } else {
       // Insert the new viewed post
-      await executeQuery(
+      await connection.query(
         `INSERT INTO viewed_posts (user_id, post_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
         [userId, postId]
       )
     }
 
     // Ensure the user has a maximum of 5 viewed posts
-    await executeQuery(
+    await connection.query(
       `DELETE FROM viewed_posts 
        WHERE user_id = $1 
        AND post_id NOT IN (
-         SELECT post_id FROM viewed_posts 
+         SELECT post_id 
+         FROM viewed_posts 
          WHERE user_id = $1 
          ORDER BY created_at DESC 
          LIMIT 5
@@ -424,12 +426,13 @@ const updateViewedPostsFn = async (userId, postId) => {
       [userId]
     )
 
-    await executeQuery('COMMIT')
-    return { message: rows.length > 0 ? 'updated' : 'viewed' }
+    await connection.query('COMMIT')
+    return { status: rows.length > 0 ? 'updated' : 'viewed' }
   } catch (error) {
-    await executeQuery('ROLLBACK')
-    console.error('Error updating viewed posts:', error)
+    await connection.query('ROLLBACK')
     throw error
+  } finally {
+    connection.release()
   }
 }
 
