@@ -52,23 +52,21 @@ const getPopularPostsFn = async (userId) => {
 // ============== GET POST BY ID =========
 // =======================================
 const getPostByIdFn = async (postId, userId) => {
-  const result = await client.query(
-    `SELECT 
+  const query = `
+    SELECT 
       p.*, 
       u.username, 
       u.profile, 
       u.city,
-   
-       (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
+      (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
       EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id) AS like_status,
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id) AS save_status
     FROM posts p
     INNER JOIN users u ON u.user_id = p.user_id
-    WHERE p.id = $1`,
-    [postId, userId]
-  )
+    WHERE p.id = $1`
 
-  return result.rows[0]
+  const rows = await executeQuery(query, [postId, userId])
+  return rows[0]
 }
 
 // =======================================
