@@ -288,7 +288,7 @@ const updatePostFn = async (postId, postData) => {
   `
 
   // Execute the query
-  const result = await executeQuery(query, values)
+  const result = await client.query(query, values)
 
   // Return the updated post
   return result.rows[0]
