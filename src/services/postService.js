@@ -205,8 +205,12 @@ const createPostFn = async (postData) => {
     images = [],
   } = postData
 
-  const result = await client.query(
-    `INSERT INTO posts (
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
+
+    const insertPostQuery = `
+      INSERT INTO posts (
         car_name,
         price,
         model,
@@ -218,12 +222,13 @@ const createPostFn = async (postData) => {
         engine,
         popular,
         side,
-        images, 
+        images,
         user_id 
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      RETURNING *`,
-    [
+      RETURNING *,`
+
+    const postValues = [
       car_name,
       price,
       model,
@@ -238,9 +243,16 @@ const createPostFn = async (postData) => {
       images,
       userId,
     ]
-  )
 
-  return result.rows[0]
+    const result = await connection.query(insertPostQuery, postValues)
+    await connection.query('COMMIT')
+    return result.rows[0]
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
+  }
 }
 
 // =======================================
