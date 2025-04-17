@@ -54,10 +54,6 @@ const getUserByIdFn = async (id) => {
 
     const result = await connection.query(query, [id])
 
-    if (!result.rows[0]) {
-      throw new Error('User not found')
-    }
-
     await connection.query('COMMIT')
     return result.rows[0]
   } catch (error) {
