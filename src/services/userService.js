@@ -14,15 +14,28 @@ const executeQuery = async (query, params = []) => {
 // =======================================
 // ============ GET ALL USERS ============
 // =======================================
-const getAllUsersFn = async (searchTerm, limit, offset) => {
-  const query = `SELECT * 
+const getAllUsersFn = async (searchTerm, city, limit, offset) => {
+  let query = `
+    SELECT * 
     FROM users 
     WHERE seller = true
-      AND username ILIKE $1 || '%'  
-    ORDER BY username ASC, created_at DESC
-    LIMIT $2 OFFSET $3`
+      AND username ILIKE $1 || '%'
+  `
+  const params = [`${searchTerm}`]
+  let paramIndex = 2
 
-  return await executeQuery(query, [`${searchTerm}`, limit, offset])
+  if (city) {
+    query += ` AND city = $${paramIndex}`
+    params.push(city)
+    paramIndex++
+  }
+
+  query += ` ORDER BY username ASC, created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+
+  params.push(limit, offset)
+
+  return await executeQuery(query, params)
 }
 
 // =======================================

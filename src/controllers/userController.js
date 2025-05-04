@@ -15,12 +15,13 @@ import { logger } from '../utils/logger.js'
 // =======================================
 const getAllUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm || ''
+  const city = req.query?.city || ''
   const page = parseInt(req.query?.page) || 1
   const limit = 15
   const offset = (page - 1) * limit
 
   try {
-    const users = await getAllUsersFn(searchTerm, limit, offset)
+    const users = await getAllUsersFn(searchTerm, city, limit, offset)
 
     res.status(200).json({
       users,
