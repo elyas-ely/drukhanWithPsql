@@ -16,7 +16,6 @@ import { logger } from '../utils/logger.js'
 const getAllUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm || ''
   const city = req.query?.city || ''
-  logger.warning(city)
   const page = parseInt(req.query?.page) || 1
   const limit = 15
   const offset = (page - 1) * limit
