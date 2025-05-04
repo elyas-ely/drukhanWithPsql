@@ -136,6 +136,7 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       maxPrice: (value) => `price <= $${queryParams.push(value)}`,
       side: (value) => `side = $${queryParams.push(value)}`,
       transmission: (value) => `transmission = $${queryParams.push(value)}`,
+      city: (value) => `u.city = $${queryParams.push(value)}`, // Add city filter
     }
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -150,11 +151,12 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
     }
 
     const query = `
-      SELECT *,
+      SELECT posts.*,
         (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
         EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = posts.id)::BOOLEAN AS like_status,
         EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id)::BOOLEAN AS save_status
       FROM posts
+      JOIN users u ON posts.user_id = u.user_id
       WHERE ${queryParts.join(' AND ')}
       ORDER BY car_name ASC, created_at DESC
       LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
