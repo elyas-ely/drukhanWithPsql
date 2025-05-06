@@ -161,7 +161,6 @@ const deleteUser = async (req, res) => {
 
   try {
     await deleteUserFn(userId)
-    logger.warning('User deleted successfully')
     res.status(204).send()
   } catch (err) {
     console.error('Error in deleteUser:', err)
