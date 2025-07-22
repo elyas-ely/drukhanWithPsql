@@ -105,16 +105,28 @@ const getViewedPostFn = async (userId) => {
 }
 
 // =======================================
-// ============ GET ALL USERS ============
+// ============ GET SEARCH POSTS ============
 // =======================================
 const getSearchPostsFn = async (searchTerm, limit = 10) => {
-  const query = `SELECT id, car_name 
-     FROM posts 
-     WHERE car_name ILIKE $1
-     ORDER BY car_name ASC, created_at DESC
-     LIMIT $2`
+  const query = `
+    SELECT id, car_name
+    FROM posts
+    WHERE 
+      car_name ILIKE $1 || '%' OR
+      to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $1) OR
+      car_name ILIKE '%' || $1 || '%'
+    ORDER BY 
+      CASE 
+        WHEN car_name ILIKE $1 || '%' THEN 1
+        WHEN to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $1) THEN 2
+        ELSE 3
+      END,
+      ts_rank(to_tsvector('simple', car_name), plainto_tsquery('simple', $1)) DESC,
+      car_name ASC
+    LIMIT $2
+  `
 
-  return await executeQuery(query, [`${searchTerm}%`, limit])
+  return await executeQuery(query, [searchTerm, limit])
 }
 
 // =======================================
@@ -126,7 +138,12 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
     const queryParams = [userId]
 
     const filterConditions = {
-      car_name: (value) => `car_name ILIKE $${queryParams.push(`${value}%`)}`,
+      car_name: (value) => {
+        const param1 = queryParams.push(`${value}%`)
+        const param2 = queryParams.push(value)
+        const param3 = queryParams.push(`%${value}%`)
+        return `(car_name ILIKE $${param1} OR to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $${param2}) OR car_name ILIKE $${param3})`
+      },
       conditions: (value) => `conditions = $${queryParams.push(value)}`,
       color: (value) => `color = $${queryParams.push(value)}`,
       engine: (value) => `engine = $${queryParams.push(value)}`,
@@ -136,7 +153,7 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       maxPrice: (value) => `price <= $${queryParams.push(value)}`,
       side: (value) => `side = $${queryParams.push(value)}`,
       transmission: (value) => `transmission = $${queryParams.push(value)}`,
-      city: (value) => `u.city = $${queryParams.push(value)}`, // Add city filter
+      city: (value) => `u.city = $${queryParams.push(value)}`,
     }
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -158,7 +175,15 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       FROM posts
       JOIN users u ON posts.user_id = u.user_id
       WHERE ${queryParts.join(' AND ')}
-      ORDER BY car_name ASC, created_at DESC
+      ORDER BY 
+        CASE 
+          WHEN car_name ILIKE $2 THEN 1
+          WHEN to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $3) THEN 2
+          ELSE 3
+        END,
+        ts_rank(to_tsvector('simple', car_name), plainto_tsquery('simple', $3)) DESC,
+        car_name ASC,
+        created_at DESC
       LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
     `
 
