@@ -19,9 +19,13 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
     SELECT * 
     FROM users 
     WHERE seller = true
-      AND username ILIKE $1 || '%'
+      AND (
+        username ILIKE $1 || '%' OR
+        to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) OR
+        username ILIKE '%' || $1 || '%'
+      )
   `
-  const params = [`${searchTerm}`]
+  const params = [searchTerm]
   let paramIndex = 2
 
   if (city) {
@@ -30,7 +34,16 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
     paramIndex++
   }
 
-  query += ` ORDER BY username ASC, created_at DESC
+  query += `
+    ORDER BY 
+      CASE 
+        WHEN username ILIKE $1 || '%' THEN 1
+        WHEN to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) THEN 2
+        ELSE 3
+      END,
+      ts_rank(to_tsvector('simple', username), plainto_tsquery('simple', $1)) DESC,
+      username ASC,
+      created_at DESC
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
 
   params.push(limit, offset)
@@ -42,14 +55,28 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
 // ============ GET SEARCH USERS ============
 // =======================================
 const getSearchUsersFn = async (searchTerm, limit = 6) => {
-  const query = `SELECT * 
+  const query = `
+    SELECT * 
     FROM users 
-    WHERE seller = true
-      AND username ILIKE $1 || '%'  
-    ORDER BY username ASC, created_at DESC
-    LIMIT $2`
+    WHERE 
+      seller = true AND (
+        username ILIKE $1 || '%' OR
+        to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) OR
+        username ILIKE '%' || $1 || '%'
+      )
+    ORDER BY 
+      CASE 
+        WHEN username ILIKE $1 || '%' THEN 1
+        WHEN to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) THEN 2
+        ELSE 3
+      END,
+      ts_rank(to_tsvector('simple', username), plainto_tsquery('simple', $1)) DESC,
+      username ASC,
+      created_at DESC
+    LIMIT $2
+  `
 
-  return await executeQuery(query, [`${searchTerm}`, limit])
+  return await executeQuery(query, [searchTerm, limit])
 }
 
 // =======================================
