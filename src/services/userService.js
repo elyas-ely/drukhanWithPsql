@@ -16,12 +16,17 @@ const executeQuery = async (query, params = []) => {
 // =======================================
 const getAllUsersFn = async (searchTerm, city, limit, offset) => {
   let query = `
-    SELECT * 
+    SELECT *,
+      similarity(unaccent(username), unaccent($1)) AS sim,
+      ts_rank_cd(
+        setweight(to_tsvector('simple', unaccent(username)), 'A'),
+        plainto_tsquery('simple', unaccent($1))
+      ) AS rank
     FROM users 
     WHERE seller = true
       AND (
-        username ILIKE $1 || '%' OR
-        to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) OR
+        similarity(unaccent(username), unaccent($1)) > 0.15 OR
+        to_tsvector('simple', unaccent(username)) @@ plainto_tsquery('simple', unaccent($1)) OR
         username ILIKE '%' || $1 || '%'
       )
   `
@@ -38,13 +43,16 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
     ORDER BY 
       CASE 
         WHEN username ILIKE $1 || '%' THEN 1
-        WHEN to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) THEN 2
-        ELSE 3
+        WHEN to_tsvector('simple', unaccent(username)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
+        WHEN similarity(unaccent(username), unaccent($1)) > 0.15 THEN 3
+        ELSE 4
       END,
-      ts_rank(to_tsvector('simple', username), plainto_tsquery('simple', $1)) DESC,
+      sim DESC,
+      rank DESC,
       username ASC,
       created_at DESC
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1};
+  `
 
   params.push(limit, offset)
 
@@ -56,24 +64,31 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
 // =======================================
 const getSearchUsersFn = async (searchTerm, limit = 6) => {
   const query = `
-    SELECT * 
+    SELECT *,
+      similarity(unaccent(username), unaccent($1)) AS sim,
+      ts_rank_cd(
+        setweight(to_tsvector('simple', unaccent(username)), 'A'),
+        plainto_tsquery('simple', unaccent($1))
+      ) AS rank
     FROM users 
     WHERE 
       seller = true AND (
-        username ILIKE $1 || '%' OR
-        to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) OR
+        similarity(unaccent(username), unaccent($1)) > 0.15 OR
+        to_tsvector('simple', unaccent(username)) @@ plainto_tsquery('simple', unaccent($1)) OR
         username ILIKE '%' || $1 || '%'
       )
     ORDER BY 
       CASE 
         WHEN username ILIKE $1 || '%' THEN 1
-        WHEN to_tsvector('simple', username) @@ plainto_tsquery('simple', $1) THEN 2
-        ELSE 3
+        WHEN to_tsvector('simple', unaccent(username)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
+        WHEN similarity(unaccent(username), unaccent($1)) > 0.15 THEN 3
+        ELSE 4
       END,
-      ts_rank(to_tsvector('simple', username), plainto_tsquery('simple', $1)) DESC,
+      sim DESC,
+      rank DESC,
       username ASC,
       created_at DESC
-    LIMIT $2
+    LIMIT $2;
   `
 
   return await executeQuery(query, [searchTerm, limit])
