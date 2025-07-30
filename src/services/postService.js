@@ -58,6 +58,8 @@ const getPostByIdFn = async (postId, userId) => {
       u.username, 
       u.profile, 
       u.city,
+      u.whatsapp,
+      u.phone_number1,
       (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
       EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id) AS like_status,
       EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id) AS save_status
