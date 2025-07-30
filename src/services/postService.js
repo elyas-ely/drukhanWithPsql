@@ -144,14 +144,24 @@ const getSearchPostsFn = async (searchTerm, limit = 10) => {
 const getFilteredPostFn = async (filters, userId, limit, offset) => {
   try {
     const queryParts = []
-    const queryParams = [userId]
+    const queryParams = [userId] // $1
+
+    let searchTermIndex = null
 
     const filterConditions = {
       car_name: (value) => {
-        const param1 = queryParams.push(`${value}%`)
-        const param2 = queryParams.push(value)
-        const param3 = queryParams.push(`%${value}%`)
-        return `(car_name ILIKE $${param1} OR to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $${param2}) OR car_name ILIKE $${param3})`
+        // Save search term index for later reuse in ORDER BY
+        const paramIndex = queryParams.push(value) // unaccented searchTerm
+        searchTermIndex = paramIndex
+
+        // Add similarity and hybrid match conditions
+        return `
+          (
+            similarity(unaccent(car_name), unaccent($${paramIndex})) > 0.15
+            OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($${paramIndex}))
+            OR car_name ILIKE '%' || $${paramIndex} || '%'
+          )
+        `
       },
       conditions: (value) => `conditions = $${queryParams.push(value)}`,
       color: (value) => `color = $${queryParams.push(value)}`,
@@ -165,6 +175,7 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       city: (value) => `u.city = $${queryParams.push(value)}`,
     }
 
+    // Apply filters
     Object.entries(filters).forEach(([key, value]) => {
       if (filterConditions[key] && value !== undefined && value !== '') {
         queryParts.push(filterConditions[key](value))
@@ -176,8 +187,16 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       return []
     }
 
+    const limitIdx = queryParams.push(limit)
+    const offsetIdx = queryParams.push(offset)
+
     const query = `
       SELECT posts.*,
+        similarity(unaccent(car_name), unaccent($${searchTermIndex})) AS sim,
+        ts_rank_cd(
+          setweight(to_tsvector('simple', unaccent(car_name)), 'A'),
+          plainto_tsquery('simple', unaccent($${searchTermIndex}))
+        ) AS rank,
         (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
         EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = posts.id)::BOOLEAN AS like_status,
         EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id)::BOOLEAN AS save_status
@@ -186,14 +205,16 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
       WHERE ${queryParts.join(' AND ')}
       ORDER BY 
         CASE 
-          WHEN car_name ILIKE $2 THEN 1
-          WHEN to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $3) THEN 2
-          ELSE 3
+          WHEN car_name ILIKE $${searchTermIndex} || '%' THEN 1
+          WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($${searchTermIndex})) THEN 2
+          WHEN similarity(unaccent(car_name), unaccent($${searchTermIndex})) > 0.15 THEN 3
+          ELSE 4
         END,
-        ts_rank(to_tsvector('simple', car_name), plainto_tsquery('simple', $3)) DESC,
+        sim DESC,
+        rank DESC,
         car_name ASC,
         created_at DESC
-      LIMIT $${queryParams.push(limit)} OFFSET $${queryParams.push(offset)};
+      LIMIT $${limitIdx} OFFSET $${offsetIdx};
     `
 
     return await executeQuery(query, queryParams)
