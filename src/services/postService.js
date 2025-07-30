@@ -109,21 +109,30 @@ const getViewedPostFn = async (userId) => {
 // =======================================
 const getSearchPostsFn = async (searchTerm, limit = 10) => {
   const query = `
-    SELECT id, car_name
+    SELECT 
+      id, 
+      car_name,
+      similarity(unaccent(car_name), unaccent($1)) AS sim,
+      ts_rank_cd(
+        setweight(to_tsvector('simple', unaccent(car_name)), 'A'), 
+        plainto_tsquery('simple', unaccent($1))
+      ) AS rank
     FROM posts
     WHERE 
-      car_name ILIKE $1 || '%' OR
-      to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $1) OR
-      car_name ILIKE '%' || $1 || '%'
+      similarity(unaccent(car_name), unaccent($1)) > 0.15
+      OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
+      OR car_name ILIKE '%' || $1 || '%'
     ORDER BY 
-      CASE 
-        WHEN car_name ILIKE $1 || '%' THEN 1
-        WHEN to_tsvector('simple', car_name) @@ plainto_tsquery('simple', $1) THEN 2
-        ELSE 3
+      -- Prioritize exact prefix match highest
+      CASE WHEN car_name ILIKE $1 || '%' THEN 1
+           WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
+           WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 3
+           ELSE 4
       END,
-      ts_rank(to_tsvector('simple', car_name), plainto_tsquery('simple', $1)) DESC,
+      sim DESC,
+      rank DESC,
       car_name ASC
-    LIMIT $2
+    LIMIT $2;
   `
 
   return await executeQuery(query, [searchTerm, limit])
