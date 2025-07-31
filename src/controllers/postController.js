@@ -13,6 +13,7 @@ import {
   updateSaveFn,
   updateLikeFn,
   updateViewedPostsFn,
+  updatePostStatusFn,
 } from '../services/postService.js'
 import { logger } from '../utils/logger.js'
 
@@ -159,6 +160,34 @@ const getSearchPosts = async (req, res) => {
 }
 
 // =======================================
+// ========= GET FILTERED POSTS ========
+// =======================================
+const getFilteredPost = async (req, res) => {
+  const userId = req.query?.userId
+  const filters = req.query
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
+
+  if (!filters?.car_name || !userId) {
+    return res
+      .status(400)
+      .json({ error: 'User ID and car name are required (getFilteredPost)' })
+  }
+
+  try {
+    const posts = await getFilteredPostFn(filters, userId, limit, offset)
+
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1,
+    })
+  } catch (err) {
+    console.error('Error in getFilteredPost:', err)
+    res.status(500).json({ error: 'Failed to retrieve filtered posts' })
+  }
+}
+// =======================================
 // ========= GET POSTS BY USER ID ========
 // =======================================
 const getPostsByUserId = async (req, res) => {
@@ -186,35 +215,6 @@ const getPostsByUserId = async (req, res) => {
     res
       .status(500)
       .json({ error: 'Failed to retrieve user posts (getPostsByUserId)' })
-  }
-}
-
-// =======================================
-// ========= GET POSTS BY USER ID ========
-// =======================================
-const getFilteredPost = async (req, res) => {
-  const userId = req.query?.userId
-  const filters = req.query
-  const page = parseInt(req.query?.page) || 1
-  const limit = 12
-  const offset = (page - 1) * limit
-
-  if (!filters?.car_name || !userId) {
-    return res
-      .status(400)
-      .json({ error: 'User ID and car name are required (getFilteredPost)' })
-  }
-
-  try {
-    const posts = await getFilteredPostFn(filters, userId, limit, offset)
-
-    res.status(200).json({
-      posts,
-      nextPage: posts.length < limit ? null : page + 1,
-    })
-  } catch (err) {
-    console.error('Error in getFilteredPost:', err)
-    res.status(500).json({ error: 'Failed to retrieve filtered posts' })
   }
 }
 
@@ -337,6 +337,30 @@ const updateViewedPosts = async (req, res) => {
   }
 }
 
+const updatePostStatus = async (req, res) => {
+  const userId = req.query?.userId
+  const postId = req.params?.postId
+
+  if (!userId || !postId) {
+    return res
+      .status(400)
+      .json({ error: 'Post ID and User ID are required (updatePostStatus)' })
+  }
+
+  try {
+    const post = await updatePostStatusFn(userId, postId)
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' })
+    }
+    res.status(200).json({ message: 'post status updated susccesfully ' })
+  } catch (err) {
+    console.error('Error in updatePostStatus:', err)
+    res
+      .status(500)
+      .json({ error: 'Failed to retrieve post (updatePostStatus)' })
+  }
+}
+
 // =======================================
 // ============== DELETE POST ============
 // =======================================
@@ -374,5 +398,6 @@ export {
   updateSave,
   updateLike,
   updateViewedPosts,
+  updatePostStatus,
   deletePost,
 }

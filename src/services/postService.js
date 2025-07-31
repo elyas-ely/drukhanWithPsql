@@ -519,6 +519,33 @@ const deletePostFn = async (postId) => {
   }
 }
 
+// =======================================
+// ============== UPDATE POST STATUS =====
+// =======================================
+const updatePostStatusFn = async (userId, postId) => {
+  const connection = await client.connect()
+  try {
+    await connection.query('BEGIN')
+
+    const result = await connection.query(
+      'UPDATE posts SET sold_out = NOT sold_out WHERE user_id = $1 AND id = $2 RETURNING *',
+      [userId, postId]
+    )
+
+    if (result.rowCount === 0) {
+      throw new Error('Post not found or unauthorized')
+    }
+
+    await connection.query('COMMIT')
+    return result.rows[0]
+  } catch (error) {
+    await connection.query('ROLLBACK')
+    throw error
+  } finally {
+    connection.release()
+  }
+}
+
 export {
   getAllPostsFn,
   getPopularPostsFn,
@@ -534,4 +561,5 @@ export {
   updateLikeFn,
   updateViewedPostsFn,
   deletePostFn,
+  updatePostStatusFn,
 }

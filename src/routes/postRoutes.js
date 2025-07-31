@@ -15,6 +15,7 @@ import {
   updateSave,
   updateLike,
   updateViewedPosts,
+  updatePostStatus,
 } from '../controllers/postController.js'
 
 const router = express.Router()
@@ -43,6 +44,7 @@ router.put('/:postId', updatePost)
 router.put('/saves/:postId', updateSave)
 router.put('/likes/:postId', updateLike)
 router.put('/viewed/:postId', updateViewedPosts)
+router.put('/status/:postId', updatePostStatus)
 
 // =======================================
 // ============== DELETE ROUTES ==========
