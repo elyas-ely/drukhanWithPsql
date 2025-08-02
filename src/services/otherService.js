@@ -17,11 +17,12 @@ const executeQuery = async (query, params = []) => {
 const getAllBannersFn = async () => {
   const query = `SELECT b.*, 
     u.username, 
-    u.city 
+    u.city,
+    u.profile
     FROM banners b 
     INNER JOIN users u 
     ON b.user_id = u.user_id`
-  
+
   return await executeQuery(query)
 }
 
