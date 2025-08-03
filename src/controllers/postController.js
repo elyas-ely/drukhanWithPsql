@@ -238,7 +238,7 @@ export const getSponsoredPosts = async (req, res) => {
 
     const updatedPosts = posts.map((post) => ({
       ...post,
-      images: post.images[0],
+      images: post.images?.[0] || null,
     }))
 
     res.status(200).json(updatedPosts)
