@@ -105,7 +105,7 @@ export const getUserByIdFn = async (userId) => {
     const query = `
       SELECT 
         u.*, 
-        (SELECT COUNT(*) FROM posts WHERE user_id = u.user_id) AS posts_count,
+        (SELECT COUNT(*) FROM posts WHERE user_id = u.user_id) AS total_posts,
         (SELECT COUNT(*) 
          FROM likes l 
          INNER JOIN posts p ON p.id = l.post_id 
