@@ -198,7 +198,9 @@ const getPostsByUserId = async (req, res) => {
   const offset = (page - 1) * limit
 
   if (!userId || !myId) {
-    return res.status(400).json({ error: 'User ID is required' })
+    return res
+      .status(400)
+      .json({ error: 'User ID and myId are required (getPostsByUserId)' })
   }
 
   try {

@@ -1,7 +1,7 @@
 import { client } from '../config/db.js'
 
 // Helper function to execute queries with proper connection management
-const executeQuery = async (query, params = []) => {
+export const executeQuery = async (query, params = []) => {
   const connection = await client.connect()
   try {
     const result = await connection.query(query, params)
@@ -14,7 +14,7 @@ const executeQuery = async (query, params = []) => {
 // =======================================
 // ============ GET ALL USERS ============
 // =======================================
-const getAllUsersFn = async (searchTerm, city, limit, offset) => {
+export const getAllUsersFn = async (searchTerm, city, limit, offset) => {
   let query = `
     SELECT *,
       similarity(unaccent(username), unaccent($1)) AS sim,
@@ -62,7 +62,7 @@ const getAllUsersFn = async (searchTerm, city, limit, offset) => {
 // =======================================
 // ============ GET SEARCH USERS ============
 // =======================================
-const getSearchUsersFn = async (searchTerm, limit = 6) => {
+export const getSearchUsersFn = async (searchTerm, limit = 6) => {
   const query = `
     SELECT *,
       similarity(unaccent(username), unaccent($1)) AS sim,
@@ -97,17 +97,24 @@ const getSearchUsersFn = async (searchTerm, limit = 6) => {
 // =======================================
 // =========== GET USER BY ID ===========
 // =======================================
-const getUserByIdFn = async (id) => {
+export const getUserByIdFn = async (userId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
 
     const query = `
-      SELECT *
-      FROM users 
-      WHERE user_id = $1`
+      SELECT 
+        u.*, 
+        (SELECT COUNT(*) FROM posts WHERE user_id = u.user_id) AS posts_count,
+        (SELECT COUNT(*) 
+         FROM likes l 
+         INNER JOIN posts p ON p.id = l.post_id 
+         WHERE p.user_id = u.user_id) AS total_likes
+      FROM users u
+      WHERE u.user_id = $1
+    `
 
-    const result = await connection.query(query, [id])
+    const result = await connection.query(query, [userId])
 
     await connection.query('COMMIT')
     return result.rows[0]
@@ -122,7 +129,7 @@ const getUserByIdFn = async (id) => {
 // =======================================
 // ============== GET VIEWED USERS =========
 // =======================================
-const getViewedUsersFn = async (userId) => {
+export const getViewedUsersFn = async (userId) => {
   const query = `SELECT u.* 
      FROM users u
      JOIN viewed_users v ON u.user_id = v.viewed_user_id
@@ -135,7 +142,7 @@ const getViewedUsersFn = async (userId) => {
 // =======================================
 // ============= CREATE USER ============
 // =======================================
-const createUserFn = async (userData) => {
+export const createUserFn = async (userData) => {
   const {
     userId,
     username,
@@ -202,7 +209,7 @@ const createUserFn = async (userData) => {
 // =======================================
 // ============= UPDATE USER ============
 // =======================================
-const updateUserFn = async (userId, userData) => {
+export const updateUserFn = async (userId, userData) => {
   const updatableFields = [
     'username',
     'email',
@@ -257,7 +264,7 @@ const updateUserFn = async (userId, userData) => {
 // =======================================
 // ============== UPDATE VIEWED USERS ====
 // =======================================
-const updateViewedUsersFn = async (userId, otherId) => {
+export const updateViewedUsersFn = async (userId, otherId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -308,19 +315,8 @@ const updateViewedUsersFn = async (userId, otherId) => {
 // =======================================
 // ============= DELETE USER ============
 // =======================================
-const deleteUserFn = async (userId) => {
+export const deleteUserFn = async (userId) => {
   const query = 'DELETE FROM users WHERE user_id = $1 RETURNING *'
   const rows = await executeQuery(query, [userId])
   return rows[0]
-}
-
-export {
-  getAllUsersFn,
-  getSearchUsersFn,
-  getUserByIdFn,
-  getViewedUsersFn,
-  createUserFn,
-  updateUserFn,
-  updateViewedUsersFn,
-  deleteUserFn,
 }

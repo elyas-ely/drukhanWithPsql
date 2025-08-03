@@ -13,7 +13,7 @@ import { logger } from '../utils/logger.js'
 // =======================================
 // ============= GET ALL USERS ===========
 // =======================================
-const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm || ''
   const city = req.query?.city || ''
   const page = parseInt(req.query?.page) || 1
@@ -36,7 +36,7 @@ const getAllUsers = async (req, res) => {
 // =======================================
 // ============= GET SEARCH USERS ===========
 // =======================================
-const getSearchUsers = async (req, res) => {
+export const getSearchUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm
   try {
     const users = await getSearchUsersFn(searchTerm)
@@ -53,7 +53,7 @@ const getSearchUsers = async (req, res) => {
 // =======================================
 // ============ GET USER BY ID ===========
 // =======================================
-const getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   const userId = req.params?.userId
 
   try {
@@ -71,7 +71,7 @@ const getUserById = async (req, res) => {
 // =======================================
 // ============ GET VIEWED USERS ===========
 // =======================================
-const getViewedUsers = async (req, res) => {
+export const getViewedUsers = async (req, res) => {
   const userId = req.params?.userId
 
   try {
@@ -89,7 +89,7 @@ const getViewedUsers = async (req, res) => {
 // =======================================
 // ============= CREATE USER =============
 // =======================================
-const createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   const userData = req.body
 
   try {
@@ -109,7 +109,7 @@ const createUser = async (req, res) => {
 // =======================================
 // ============= UPDATE USER =============
 // =======================================
-const updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   const userId = req.params?.userId
   const userData = req.body
 
@@ -127,7 +127,7 @@ const updateUser = async (req, res) => {
 // =======================================
 // ============== UPDATE VIEWED USERS =======
 // =======================================
-const updateViewedUsers = async (req, res) => {
+export const updateViewedUsers = async (req, res) => {
   const userId = req.query?.userId
   const otherId = req.params?.otherId
 
@@ -154,7 +154,7 @@ const updateViewedUsers = async (req, res) => {
 // =======================================
 // ============= DELETE USER =============
 // =======================================
-const deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   const userId = req.params.userId
 
   if (!userId) throw new Error('User ID is required')
@@ -166,15 +166,4 @@ const deleteUser = async (req, res) => {
     console.error('Error in deleteUser:', err)
     res.status(500).json({ error: 'Failed to delete user' })
   }
-}
-
-export {
-  getAllUsers,
-  getSearchUsers,
-  getViewedUsers,
-  createUser,
-  getUserById,
-  updateUser,
-  updateViewedUsers,
-  deleteUser,
 }
