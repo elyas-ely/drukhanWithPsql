@@ -235,7 +235,13 @@ export const getSponsoredPosts = async (req, res) => {
 
   try {
     const posts = await getSponsoredPostsFn(userId)
-    res.status(200).json(posts)
+
+    const updatedPosts = posts.map((post) => ({
+      ...post,
+      images: post.images[0],
+    }))
+
+    res.status(200).json(updatedPosts)
   } catch (err) {
     console.error('Error in getSponsoredPosts:', err)
     res.status(500).json({ error: 'Failed to retrieve sponsored posts' })
