@@ -14,13 +14,14 @@ import {
   updateLikeFn,
   updateViewedPostsFn,
   updatePostStatusFn,
+  getSponsoredPostsFn,
 } from '../services/postService.js'
 import { logger } from '../utils/logger.js'
 
 // =======================================
 // ============== GET ALL POSTS ==========
 // =======================================
-const getAllPosts = async (req, res) => {
+export const getAllPosts = async (req, res) => {
   const userId = req.query?.userId
   const page = parseInt(req.query?.page) || 1
   const limit = 12
@@ -46,7 +47,7 @@ const getAllPosts = async (req, res) => {
 // =======================================
 // ============== GET POPULAR POSTS ==========
 // =======================================
-const getPopularPosts = async (req, res) => {
+export const getPopularPosts = async (req, res) => {
   const userId = req.query?.userId
 
   if (!userId) throw new Error('User ID is required')
@@ -70,7 +71,7 @@ const getPopularPosts = async (req, res) => {
 // =======================================
 // ============== GET POST BY ID =========
 // =======================================
-const getPostById = async (req, res) => {
+export const getPostById = async (req, res) => {
   const postId = req.params?.postId
   const userId = req.query?.userId
 
@@ -95,7 +96,7 @@ const getPostById = async (req, res) => {
 // =======================================
 // ============== GET SAVED POST =========
 // =======================================
-const getSavesPost = async (req, res) => {
+export const getSavesPost = async (req, res) => {
   const userId = req.params?.userId
   const page = parseInt(req.query?.page) || 1
   const limit = 12
@@ -121,7 +122,7 @@ const getSavesPost = async (req, res) => {
 // =======================================
 // ============== GET VIEWED POST =========
 // =======================================
-const getViewedPost = async (req, res) => {
+export const getViewedPost = async (req, res) => {
   const userId = req.params?.userId
 
   if (!userId) {
@@ -143,7 +144,7 @@ const getViewedPost = async (req, res) => {
 // =======================================
 // ============= GET SEARCH POSTS ========
 // =======================================
-const getSearchPosts = async (req, res) => {
+export const getSearchPosts = async (req, res) => {
   const searchTerm = req.query?.searchTerm
   try {
     const posts = await getSearchPostsFn(searchTerm)
@@ -162,7 +163,7 @@ const getSearchPosts = async (req, res) => {
 // =======================================
 // ========= GET FILTERED POSTS ========
 // =======================================
-const getFilteredPost = async (req, res) => {
+export const getFilteredPost = async (req, res) => {
   const userId = req.query?.userId
   const filters = req.query
   const page = parseInt(req.query?.page) || 1
@@ -190,7 +191,7 @@ const getFilteredPost = async (req, res) => {
 // =======================================
 // ========= GET POSTS BY USER ID ========
 // =======================================
-const getPostsByUserId = async (req, res) => {
+export const getPostsByUserId = async (req, res) => {
   const userId = req.params?.userId
   const myId = req.query?.myId
   const page = parseInt(req.query?.page) || 1
@@ -221,9 +222,30 @@ const getPostsByUserId = async (req, res) => {
 }
 
 // =======================================
+// ========= GET SPONSORED POSTS ========
+// =======================================
+export const getSponsoredPosts = async (req, res) => {
+  const userId = req.query?.userId
+
+  if (!userId) {
+    return res
+      .status(400)
+      .json({ error: 'User ID is required (getSponsoredPosts)' })
+  }
+
+  try {
+    const posts = await getSponsoredPostsFn(userId)
+    res.status(200).json(posts)
+  } catch (err) {
+    console.error('Error in getSponsoredPosts:', err)
+    res.status(500).json({ error: 'Failed to retrieve sponsored posts' })
+  }
+}
+
+// =======================================
 // ============== CREATE POST ============
 // =======================================
-const createPost = async (req, res) => {
+export const createPost = async (req, res) => {
   try {
     const postData = req.body
 
@@ -245,7 +267,7 @@ const createPost = async (req, res) => {
 // =======================================
 // ============== UPDATE POST ============
 // =======================================
-const updatePost = async (req, res) => {
+export const updatePost = async (req, res) => {
   try {
     const { postId } = req.params
     const updateData = { ...req.body }
@@ -265,7 +287,7 @@ const updatePost = async (req, res) => {
 // =======================================
 // ============== UPDATE SAVE POST =======
 // =======================================
-const updateSave = async (req, res) => {
+export const updateSave = async (req, res) => {
   const userId = req.query?.userId
   const postId = req.params?.postId
 
@@ -290,7 +312,7 @@ const updateSave = async (req, res) => {
 // =======================================
 // ============== UPDATE SAVE POST =======
 // =======================================
-const updateLike = async (req, res) => {
+export const updateLike = async (req, res) => {
   const userId = req.query?.userId
   const postId = req.params?.postId
 
@@ -315,7 +337,7 @@ const updateLike = async (req, res) => {
 // =======================================
 // ============== UPDATE VIEWED POST =======
 // =======================================
-const updateViewedPosts = async (req, res) => {
+export const updateViewedPosts = async (req, res) => {
   const userId = req.query?.userId
   const postId = req.params?.postId
 
@@ -339,7 +361,7 @@ const updateViewedPosts = async (req, res) => {
   }
 }
 
-const updatePostStatus = async (req, res) => {
+export const updatePostStatus = async (req, res) => {
   const userId = req.query?.userId
   const postId = req.params?.postId
 
@@ -366,7 +388,7 @@ const updatePostStatus = async (req, res) => {
 // =======================================
 // ============== DELETE POST ============
 // =======================================
-const deletePost = async (req, res) => {
+export const deletePost = async (req, res) => {
   const postId = req.params?.postId
   const userId = req.query?.userId
 
@@ -384,22 +406,4 @@ const deletePost = async (req, res) => {
     console.error('Error in deletePost:', err)
     res.status(500).json({ error: 'Failed to delete post' })
   }
-}
-
-export {
-  getAllPosts,
-  getPopularPosts,
-  getPostById,
-  getViewedPost,
-  getSavesPost,
-  getPostsByUserId,
-  getSearchPosts,
-  getFilteredPost,
-  createPost,
-  updatePost,
-  updateSave,
-  updateLike,
-  updateViewedPosts,
-  updatePostStatus,
-  deletePost,
 }

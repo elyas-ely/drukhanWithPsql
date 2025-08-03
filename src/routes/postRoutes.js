@@ -9,6 +9,7 @@ import {
   getFilteredPost,
   getPostsByUserId,
   getSearchPosts,
+  getSponsoredPosts,
   createPost,
   updatePost,
   deletePost,
@@ -25,6 +26,7 @@ const router = express.Router()
 // =======================================
 router.get('/', getAllPosts)
 router.get('/popular', getPopularPosts)
+router.get('/sponsored', getSponsoredPosts)
 router.get('/search', getSearchPosts)
 router.get('/filtered', getFilteredPost)
 router.get('/saves/:userId', getSavesPost)

@@ -2,7 +2,7 @@ import { client } from '../config/db.js'
 import { logger } from '../utils/logger.js'
 
 // Helper function to execute queries with proper connection management
-const executeQuery = async (query, params = []) => {
+export const executeQuery = async (query, params = []) => {
   const connection = await client.connect()
   try {
     const result = await connection.query(query, params)
@@ -15,7 +15,7 @@ const executeQuery = async (query, params = []) => {
 // =======================================
 // ============== GET ALL POSTS ==========
 // =======================================
-const getAllPostsFn = async (userId, limit = 12, offset = 0) => {
+export const getAllPostsFn = async (userId, limit = 12, offset = 0) => {
   const query = `SELECT 
     posts.*, 
     u.username, 
@@ -35,7 +35,7 @@ const getAllPostsFn = async (userId, limit = 12, offset = 0) => {
 // =======================================
 // ============== GET POPULAR POSTS ======
 // =======================================
-const getPopularPostsFn = async (userId) => {
+export const getPopularPostsFn = async (userId) => {
   const query = `SELECT 
     posts.*, 
     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
@@ -51,7 +51,7 @@ const getPopularPostsFn = async (userId) => {
 // =======================================
 // ============== GET POST BY ID =========
 // =======================================
-const getPostByIdFn = async (postId, userId) => {
+export const getPostByIdFn = async (postId, userId) => {
   const query = `
     SELECT 
       p.*, 
@@ -74,7 +74,7 @@ const getPostByIdFn = async (postId, userId) => {
 // =======================================
 // ============== GET POST BY ID =========
 // =======================================
-const getSavedPostFn = async (userId, limit, offset) => {
+export const getSavedPostFn = async (userId, limit, offset) => {
   const query = `SELECT 
     p.*, 
     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
@@ -92,7 +92,7 @@ const getSavedPostFn = async (userId, limit, offset) => {
 // =======================================
 // ============== GET POST BY ID =========
 // =======================================
-const getViewedPostFn = async (userId) => {
+export const getViewedPostFn = async (userId) => {
   const query = `SELECT 
     p.*, 
     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
@@ -109,7 +109,7 @@ const getViewedPostFn = async (userId) => {
 // =======================================
 // ============ GET SEARCH POSTS ============
 // =======================================
-const getSearchPostsFn = async (searchTerm, limit = 10) => {
+export const getSearchPostsFn = async (searchTerm, limit = 10) => {
   const query = `
     SELECT 
       id, 
@@ -143,7 +143,7 @@ const getSearchPostsFn = async (searchTerm, limit = 10) => {
 // =======================================
 // ============== GET FILTERED POST  =====
 // =======================================
-const getFilteredPostFn = async (filters, userId, limit, offset) => {
+export const getFilteredPostFn = async (filters, userId, limit, offset) => {
   try {
     const queryParts = []
     const queryParams = [userId] // $1
@@ -229,7 +229,7 @@ const getFilteredPostFn = async (filters, userId, limit, offset) => {
 // =======================================
 // ========= GET POSTS BY USER ID ========
 // =======================================
-const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
+export const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
   const query = `SELECT 
     p.*, 
     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
@@ -245,9 +245,28 @@ const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
 }
 
 // =======================================
+// ========= GET SPONSORED POSTS ========
+// =======================================
+export const getSponsoredPostsFn = async (userId) => {
+  const query = `SELECT 
+    p.*,
+    u.username,
+    u.profile,
+    u.city,
+    (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
+    EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = p.id)::BOOLEAN AS like_status,
+    EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = p.id)::BOOLEAN AS save_status
+  FROM posts p
+  JOIN users u ON p.user_id = u.user_id
+  WHERE p.sponsored = true AND p.user_id = $1
+  ORDER BY p.created_at DESC`
+  return await executeQuery(query, [userId])
+}
+
+// =======================================
 // ============== CREATE POST ============
 // =======================================
-const createPostFn = async (postData) => {
+export const createPostFn = async (postData) => {
   const {
     car_name,
     price,
@@ -317,7 +336,7 @@ const createPostFn = async (postData) => {
 // =======================================
 // ============== UPDATE POST ============
 // =======================================
-const updatePostFn = async (postId, postData) => {
+export const updatePostFn = async (postId, postData) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -364,7 +383,7 @@ const updatePostFn = async (postId, postData) => {
 // =======================================
 // ============== UPDATE SAVE POST =======
 // =======================================
-const updateSaveFn = async (userId, postId) => {
+export const updateSaveFn = async (userId, postId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -405,7 +424,7 @@ const updateSaveFn = async (userId, postId) => {
 // =======================================
 // ============== UPDATE LIKE POST =======
 // =======================================
-const updateLikeFn = async (userId, postId) => {
+export const updateLikeFn = async (userId, postId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -446,7 +465,7 @@ const updateLikeFn = async (userId, postId) => {
 // =======================================
 // ============== UPDATE VIEWED POST =====
 // =======================================
-const updateViewedPostsFn = async (userId, postId) => {
+export const updateViewedPostsFn = async (userId, postId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -498,7 +517,7 @@ const updateViewedPostsFn = async (userId, postId) => {
 // =======================================
 // ============== DELETE POST ============
 // =======================================
-const deletePostFn = async (postId) => {
+export const deletePostFn = async (postId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -522,7 +541,7 @@ const deletePostFn = async (postId) => {
 // =======================================
 // ============== UPDATE POST STATUS =====
 // =======================================
-const updatePostStatusFn = async (userId, postId) => {
+export const updatePostStatusFn = async (userId, postId) => {
   const connection = await client.connect()
   try {
     await connection.query('BEGIN')
@@ -544,22 +563,4 @@ const updatePostStatusFn = async (userId, postId) => {
   } finally {
     connection.release()
   }
-}
-
-export {
-  getAllPostsFn,
-  getPopularPostsFn,
-  getPostByIdFn,
-  getSavedPostFn,
-  getViewedPostFn,
-  getSearchPostsFn,
-  getFilteredPostFn,
-  getPostsByUserIdFn,
-  createPostFn,
-  updatePostFn,
-  updateSaveFn,
-  updateLikeFn,
-  updateViewedPostsFn,
-  deletePostFn,
-  updatePostStatusFn,
 }
