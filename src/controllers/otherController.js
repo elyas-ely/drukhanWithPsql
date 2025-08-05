@@ -6,7 +6,7 @@ import {
 // =======================================
 // ============== GET ALL BANNAERS =======
 // =======================================
-const getAllBanners = async (req, res) => {
+export const getAllBanners = async (req, res) => {
   try {
     const banners = await getAllBannersFn()
     if (!banners) {
@@ -26,7 +26,7 @@ const getAllBanners = async (req, res) => {
 // =======================================
 // ============== GET ALL NOTIFICATIONS =======
 // =======================================
-const getAllNotifications = async (req, res) => {
+export const getAllNotifications = async (req, res) => {
   try {
     const notificaitons = await getAllNotificationsFn()
     if (!notificaitons) {
@@ -42,4 +42,13 @@ const getAllNotifications = async (req, res) => {
     })
   }
 }
-export { getAllBanners, getAllNotifications }
+
+export const getAppVersion = async (req, res) => {
+  try {
+    const version = '1.0.0'
+    res.status(200).json({ version })
+  } catch (err) {
+    console.error('Error in getAppVersionFn:', err)
+    res.status(500).json({ message: 'Failed to retrieve app version' })
+  }
+}

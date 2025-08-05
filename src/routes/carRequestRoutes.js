@@ -21,6 +21,15 @@ router.get('/:id', getCarRequestById)
 // ============== POST ROUTES ============
 // =======================================
 router.post('/', createCarRequest)
-router.delete('/:id', deleteCarRequest)
+
+// =======================================
+// ============== PATCH ROUTES ===========
+// =======================================
 router.patch('/:id', updateCarRequest)
+
+// =======================================
+// ============== DELETE ROUTES ==========
+// =======================================
+router.delete('/:id', deleteCarRequest)
+
 export default router
