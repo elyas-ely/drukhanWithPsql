@@ -2,6 +2,7 @@ import express from 'express'
 import { connectDb } from './config/db.js'
 import userRoutes from './routes/userRoutes.js'
 import postRoutes from './routes/postRoutes.js'
+import carRequestRoutes from './routes/carRequestRoutes.js'
 import otherRoutes from './routes/otherRoutes.js'
 import errorHandler from './middlewares/errorHandler.js'
 import dotenv from 'dotenv'
@@ -21,6 +22,7 @@ app.use(express.static('public'))
 // Routes
 app.use('/users', userRoutes)
 app.use('/posts', postRoutes)
+app.use('/car-requests', carRequestRoutes)
 app.use('/others', otherRoutes)
 
 // Error handling
