@@ -1,14 +1,4 @@
-import { client } from '../config/db.js'
-// Helper function to execute queries with proper connection management
-const executeQuery = async (query, params = []) => {
-  const connection = await client.connect()
-  try {
-    const result = await connection.query(query, params)
-    return result.rows
-  } finally {
-    connection.release()
-  }
-}
+import { executeQuery } from '../utils/helpingFunctions.js'
 
 // =======================================
 // ============== GET ALL REQUESTS =======
@@ -61,7 +51,7 @@ export const getAllUserCarRequestsFn = async (userId, status) => {
 }
 
 // =======================================
-// ============== GET  REQUESTS BY ID ====
+// ============== GET REQUEST BY ID ======
 // =======================================
 export const getCarRequestByIdFn = async (id, userId) => {
   const query = `SELECT cr.*, 
@@ -77,6 +67,9 @@ export const getCarRequestByIdFn = async (id, userId) => {
   return await executeQuery(query, values)
 }
 
+// =======================================
+// ============== CREATE REQUEST =========
+// =======================================
 export const createCarRequestFn = async (data) => {
   const {
     user_id,
@@ -134,6 +127,9 @@ export const createCarRequestFn = async (data) => {
   return await executeQuery(query, values)
 }
 
+// =======================================
+// ============== UPDATE REQUEST =========
+// =======================================
 export const updateCarRequestFn = async (id, userId, data) => {
   if (!data || Object.keys(data).length === 0) {
     throw new Error('No fields provided for update')
@@ -184,6 +180,9 @@ export const updateCarRequestFn = async (id, userId, data) => {
   return await executeQuery(query, values)
 }
 
+// =======================================
+// ============== DELETE REQUEST =========
+// =======================================
 export const deleteCarRequestFn = async (id, userId) => {
   const query = `DELETE FROM car_requests WHERE id = $1 AND user_id = $2`
 

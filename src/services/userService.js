@@ -1,15 +1,4 @@
-import { client } from '../config/db.js'
-
-// Helper function to execute queries with proper connection management
-export const executeQuery = async (query, params = []) => {
-  const connection = await client.connect()
-  try {
-    const result = await connection.query(query, params)
-    return result.rows
-  } finally {
-    connection.release()
-  }
-}
+import { executeQuery } from '../utils/helpingFunctions.js'
 
 // =======================================
 // ============ GET ALL USERS ============
@@ -98,10 +87,7 @@ export const getSearchUsersFn = async (searchTerm, limit = 6) => {
 // =========== GET USER BY ID ===========
 // =======================================
 export const getUserByIdFn = async (userId) => {
-  const connection = await client.connect()
   try {
-    await connection.query('BEGIN')
-
     const query = `
       SELECT 
         u.*, 
@@ -114,15 +100,13 @@ export const getUserByIdFn = async (userId) => {
       WHERE u.user_id = $1
     `
 
-    const result = await connection.query(query, [userId])
+    const values = [userId]
+    const result = await executeQuery(query, values)
 
-    await connection.query('COMMIT')
-    return result.rows[0]
+    return result[0]
   } catch (error) {
-    await connection.query('ROLLBACK')
+    console.error('Error in getUserByIdFn:', error)
     throw error
-  } finally {
-    connection.release()
   }
 }
 

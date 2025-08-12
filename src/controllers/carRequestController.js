@@ -50,6 +50,9 @@ export const getAllUserCarRequests = async (req, res) => {
   }
 }
 
+// =======================================
+// ============== GET REQUEST BY ID ======
+// =======================================
 export const getCarRequestById = async (req, res) => {
   const id = req.params.id?.trim()
   const userId = req.query.userId?.trim()
@@ -74,6 +77,9 @@ export const getCarRequestById = async (req, res) => {
   }
 }
 
+// =======================================
+// ============== CREATE REQUEST ========
+// =======================================
 export const createCarRequest = async (req, res) => {
   const data = req.body || {}
 
@@ -92,6 +98,9 @@ export const createCarRequest = async (req, res) => {
   }
 }
 
+// =======================================
+// ============== UPDATE REQUEST ========
+// =======================================
 export const updateCarRequest = async (req, res) => {
   const id = req.params.id
   const userId = req.query.userId
@@ -119,6 +128,9 @@ export const updateCarRequest = async (req, res) => {
   }
 }
 
+// =======================================
+// ============== DELETE REQUEST ========
+// =======================================
 export const deleteCarRequest = async (req, res) => {
   const id = req.params.id
   const userId = req.query.userId

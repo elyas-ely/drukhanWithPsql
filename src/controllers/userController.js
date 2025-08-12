@@ -56,15 +56,23 @@ export const getSearchUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   const userId = req.params?.userId
 
+  if (!userId) {
+    return res.status(400).json({ message: 'userId is required (getUserById)' })
+  }
+
   try {
     const user = await getUserByIdFn(userId)
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found in database' })
+      return res.status(404).json({ message: 'User not found' })
     }
-    res.status(200).json(user)
+
+    return res.status(200).json(user)
   } catch (err) {
     console.error('Error in getUserById:', err)
-    res.status(500).json({ error: 'Failed to retrieve user' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to retrieve user (getUserById)' })
   }
 }
 
@@ -72,17 +80,22 @@ export const getUserById = async (req, res) => {
 // ============ GET VIEWED USERS ===========
 // =======================================
 export const getViewedUsers = async (req, res) => {
-  const userId = req.params?.userId
+  const userId = req.query.userId
+
+  if (!userId) {
+    return res
+      .status(400)
+      .json({ message: 'userId is required (getViewedUsers)' })
+  }
 
   try {
-    const user = await getViewedUsersFn(userId)
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' })
-    }
-    res.status(200).json(user)
-  } catch (err) {
-    console.error('Error in getViewedUsers:', err)
-    res.status(500).json({ error: 'Failed to retrieve user (getViewedUsers)' })
+    const viewedUsers = await getViewedUsersFn(userId)
+    return res.status(200).json(viewedUsers)
+  } catch (error) {
+    console.error('Error in getViewedUsers:', error)
+    return res
+      .status(500)
+      .json({ error: 'Failed to retrieve users (getViewedUsers)' })
   }
 }
 
