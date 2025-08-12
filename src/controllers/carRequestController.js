@@ -30,6 +30,7 @@ export const getAllCarRequests = async (req, res) => {
 // =======================================
 export const getAllUserCarRequests = async (req, res) => {
   const userId = req.query.userId
+  const status = req.query.status || 'all'
 
   if (!userId) {
     return res
@@ -38,7 +39,7 @@ export const getAllUserCarRequests = async (req, res) => {
   }
 
   try {
-    const carRequests = await getAllUserCarRequestsFn(userId)
+    const carRequests = await getAllUserCarRequestsFn(userId, status)
 
     return res.status(200).json(carRequests)
   } catch (err) {

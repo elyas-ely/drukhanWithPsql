@@ -14,17 +14,20 @@ const executeQuery = async (query, params = []) => {
 // ============== GET ALL REQUESTS =======
 // =======================================
 export const getAllCarRequestsFn = async (city) => {
-  let query = `SELECT cr.*, 
-    u.username,
-    u.profile
-    FROM car_requests cr 
-    INNER JOIN users u 
-    ON cr.user_id = u.user_id`
+  let query = `
+    SELECT cr.*, 
+           u.username,
+           u.profile
+      FROM car_requests cr 
+      INNER JOIN users u 
+        ON cr.user_id = u.user_id
+    WHERE cr.status = 'approved'
+  `
 
   const values = []
 
   if (city) {
-    query += ` WHERE cr.city = $1`
+    query += ` AND cr.city = $1`
     values.push(city)
   }
 
@@ -34,16 +37,25 @@ export const getAllCarRequestsFn = async (city) => {
 // =======================================
 // ============== GET ALL USER REQUESTS ==
 // =======================================
-export const getAllUserCarRequestsFn = async (userId) => {
-  const query = `SELECT cr.*, 
-    u.username,
-    u.profile
-    FROM car_requests cr 
-    INNER JOIN users u 
-    ON cr.user_id = u.user_id
-    WHERE cr.user_id = $1`
+export const getAllUserCarRequestsFn = async (userId, status) => {
+  // Base query and parameters
+  let query = `
+    SELECT cr.*, 
+           u.username,
+           u.profile
+      FROM car_requests cr 
+      INNER JOIN users u 
+        ON cr.user_id = u.user_id
+     WHERE cr.user_id = $1
+  `
 
   const values = [userId]
+
+  // Add status filter if status is NOT 'all'
+  if (status && status.toLowerCase() !== 'all') {
+    query += ` AND cr.status = $2`
+    values.push(status)
+  }
 
   return await executeQuery(query, values)
 }
