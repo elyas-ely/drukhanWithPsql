@@ -80,7 +80,7 @@ export const getUserById = async (req, res) => {
 // ============ GET VIEWED USERS ===========
 // =======================================
 export const getViewedUsers = async (req, res) => {
-  const userId = req.query.userId
+  const userId = req.params.userId
 
   if (!userId) {
     return res

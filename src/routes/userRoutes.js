@@ -16,7 +16,7 @@ const router = express.Router()
 // ============== GET ROUTES =============
 // =======================================
 router.get('/', getAllUsers)
-router.get('/viewed', getViewedUsers)
+router.get('/viewed/:userId', getViewedUsers)
 router.get('/search', getSearchUsers)
 router.get('/:userId', getUserById)
 
