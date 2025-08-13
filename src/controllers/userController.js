@@ -168,15 +168,27 @@ export const updateViewedUsers = async (req, res) => {
 // ============= DELETE USER =============
 // =======================================
 export const deleteUser = async (req, res) => {
-  const userId = req.params.userId
+  const { userId } = req.params
 
-  if (!userId) throw new Error('User ID is required')
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required for deletion.' })
+  }
 
   try {
-    await deleteUserFn(userId)
-    res.status(204).send()
-  } catch (err) {
-    console.error('Error in deleteUser:', err)
-    res.status(500).json({ error: 'Failed to delete user' })
+    const deleted = await deleteUserFn(userId)
+
+    // Optional: handle case if user doesn't exist
+    if (!deleted) {
+      return res
+        .status(404)
+        .json({ message: `User with ID ${userId} not found.` })
+    }
+
+    return res.status(204).send() // No content on success
+  } catch (error) {
+    console.error(`Failed to delete user ${userId}:`, error)
+    return res
+      .status(500)
+      .json({ error: 'Internal server error while deleting user.' })
   }
 }
