@@ -1,6 +1,8 @@
 import {
+  DSdeleteLikesFn,
   DSgetAllUsersFn,
   DSgetSearchUsersFn,
+  DSgivePostLikesFn,
   DSpostToPopularFn,
   DSuserToSellerFn,
 } from '../services/dashboardService.js'
@@ -81,5 +83,59 @@ export async function DSuserToSeller(req, res) {
   } catch (err) {
     console.error('Error in userToSeller:', err)
     res.status(500).json({ error: 'Failed to retrieve user (userToSeller)' })
+  }
+}
+
+// =======================================
+// ====== give a post likes ===
+// =======================================
+export async function DSgivePostLikes(req, res) {
+  const postId = Number(req.params?.postId)
+  const numberOfLikes = Number(req.query?.likes)
+
+  if (!postId || !numberOfLikes || isNaN(numberOfLikes) || numberOfLikes <= 0) {
+    return res
+      .status(400)
+      .json({ message: 'postId and a valid number of likes are required' })
+  }
+
+  try {
+    await DSgivePostLikesFn(postId, numberOfLikes)
+
+    res.status(200).json({
+      message: `${numberOfLikes} likes added successfully to post ${postId}`,
+    })
+  } catch (err) {
+    console.error('Error in DSgivePostsLikesFn:', err)
+    res.status(500).json({
+      error: 'Failed to add likes to the post',
+    })
+  }
+}
+
+// =======================================
+// ====== delete a post likes ===
+// =======================================
+export async function DSdeleteLikes(req, res) {
+  const postId = Number(req.params?.postId)
+  const numberOfLikes = Number(req.query?.likes)
+
+  if (!postId || !numberOfLikes || isNaN(numberOfLikes) || numberOfLikes <= 0) {
+    return res
+      .status(400)
+      .json({ message: 'postId and a valid number of likes are required' })
+  }
+
+  try {
+    await DSdeleteLikesFn(postId, numberOfLikes)
+
+    res.status(200).json({
+      message: `${numberOfLikes} likes deleted successfully to post ${postId}`,
+    })
+  } catch (err) {
+    console.error('Error in DSdeleteLikesFn:', err)
+    res.status(500).json({
+      error: 'Failed to delete likes to the post',
+    })
   }
 }

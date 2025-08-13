@@ -1,4 +1,4 @@
-import { executeQuery } from '../utils/helpingFunctions.js'
+import { executeQuery, generateLikes } from '../utils/helpingFunctions.js'
 
 // =======================================
 // ============ GET ALL USERS ============
@@ -96,4 +96,29 @@ export async function DSuserToSellerFn(userId) {
     WHERE user_id = $1
   `
   return await executeQuery(query, [userId])
+}
+
+export async function DSgivePostLikesFn(postId, numberOfLikes) {
+  try {
+    const { values, placeholders } = generateLikes(postId, numberOfLikes)
+
+    const query = `INSERT INTO likes (user_id, post_id) VALUES ${placeholders}`
+    return await executeQuery(query, values)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function DSdeleteLikesFn(postId, numberOfLikes) {
+  const query = `
+    DELETE FROM likes
+    WHERE ctid IN (
+      SELECT ctid
+      FROM likes
+      WHERE post_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    )
+  `
+  return await executeQuery(query, [postId, numberOfLikes])
 }
