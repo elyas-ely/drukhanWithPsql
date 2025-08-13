@@ -127,6 +127,7 @@ export const getViewedUsersFn = async (userId) => {
 // =======================================
 // ============= CREATE USER ============
 // =======================================
+
 export const createUserFn = async (userData) => {
   const {
     userId,
@@ -148,46 +149,40 @@ export const createUserFn = async (userData) => {
     seller = false,
   } = userData
 
-  const connection = await client.connect()
+  const query = `
+    INSERT INTO users (
+      user_id, username, email, bio, city, background, profile,
+      facebook, lat, lng, phone_number1, phone_number2, phone_number3,
+      address, whatsapp, x, seller
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    RETURNING *
+  `
+
+  const values = [
+    userId,
+    username,
+    email,
+    bio,
+    city,
+    background,
+    profile,
+    facebook,
+    lat,
+    lng,
+    phone_number1,
+    phone_number2,
+    phone_number3,
+    address,
+    whatsapp,
+    x,
+    seller,
+  ]
+
   try {
-    await connection.query('BEGIN')
-
-    const query = `
-      INSERT INTO users (
-        user_id, username, email, bio, city, background, profile,
-        facebook, lat, lng, phone_number1, phone_number2, phone_number3,
-        address, whatsapp, x, seller
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-      RETURNING *`
-
-    const values = [
-      userId,
-      username,
-      email,
-      bio,
-      city,
-      background,
-      profile,
-      facebook,
-      lat,
-      lng,
-      phone_number1,
-      phone_number2,
-      phone_number3,
-      address,
-      whatsapp,
-      x,
-      seller,
-    ]
-
-    const result = await connection.query(query, values)
-    await connection.query('COMMIT')
-    return result.rows[0]
+    const [user] = await executeQuery(query, values)
+    return user
   } catch (error) {
-    await connection.query('ROLLBACK')
     throw error
-  } finally {
-    connection.release()
   }
 }
 
@@ -249,51 +244,34 @@ export const updateUserFn = async (userId, userData) => {
 // =======================================
 // ============== UPDATE VIEWED USERS ====
 // =======================================
-export const updateViewedUsersFn = async (userId, otherId) => {
-  const connection = await client.connect()
-  try {
-    await connection.query('BEGIN')
 
-    // Check if the user is already viewed
-    const { rows } = await connection.query(
-      `SELECT * FROM viewed_users WHERE user_id = $1 AND viewed_user_id = $2`,
+export const updateViewedUsersFn = async (userId, otherId) => {
+  try {
+    // Upsert the viewed user (insert or update timestamp if exists)
+    await executeQuery(
+      `INSERT INTO viewed_users (user_id, viewed_user_id, created_at)
+       VALUES ($1, $2, CURRENT_TIMESTAMP)
+       ON CONFLICT (user_id, viewed_user_id)
+       DO UPDATE SET created_at = EXCLUDED.created_at`,
       [userId, otherId]
     )
 
-    if (rows.length > 0) {
-      // If already viewed, update the timestamp
-      await connection.query(
-        `UPDATE viewed_users SET created_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND viewed_user_id = $2`,
-        [userId, otherId]
-      )
-    } else {
-      // Insert the new viewed user
-      await connection.query(
-        `INSERT INTO viewed_users (user_id, viewed_user_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
-        [userId, otherId]
-      )
-    }
-
-    // Ensure the user has a maximum of 5 viewed users
-    await connection.query(
-      `DELETE FROM viewed_users 
-       WHERE user_id = $1 
+    // Keep only the 5 most recent viewed users
+    await executeQuery(
+      `DELETE FROM viewed_users
+       WHERE user_id = $1
        AND viewed_user_id NOT IN (
-         SELECT viewed_user_id FROM viewed_users 
-         WHERE user_id = $1 
-         ORDER BY created_at DESC 
+         SELECT viewed_user_id FROM viewed_users
+         WHERE user_id = $1
+         ORDER BY created_at DESC
          LIMIT 5
        )`,
       [userId]
     )
 
-    await connection.query('COMMIT')
-    return { message: rows.length > 0 ? 'updated' : 'viewed' }
+    return { message: 'viewed' } // can be simplified since upsert always happens
   } catch (error) {
-    await connection.query('ROLLBACK')
     throw error
-  } finally {
-    connection.release()
   }
 }
 
