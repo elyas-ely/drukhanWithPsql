@@ -26,5 +26,3 @@ export function generateLikes(postId, count) {
     placeholders: placeholders.join(','),
   }
 }
-
-console.log(generateLikes('postid', 1))
