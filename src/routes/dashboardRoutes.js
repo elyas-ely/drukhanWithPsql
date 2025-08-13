@@ -2,6 +2,8 @@ import express from 'express'
 import {
   DSgetAllUsers,
   DSgetSearchUsers,
+  DSpostToPopular,
+  DSuserToSeller,
 } from '../controllers/dashboardController.js'
 
 const router = express.Router()
@@ -11,5 +13,7 @@ const router = express.Router()
 // =======================================
 router.get('/', DSgetAllUsers)
 router.get('/search', DSgetSearchUsers)
+router.post('/popular', DSpostToPopular)
+router.post('/user', DSuserToSeller)
 
 export default router

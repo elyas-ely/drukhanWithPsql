@@ -79,3 +79,21 @@ export async function DSgetSearchUsersFn(searchTerm, limit = 6) {
 
   return await executeQuery(query, [searchTerm, limit])
 }
+
+export async function DSpostToPopularFn(postId) {
+  const query = `
+    UPDATE posts
+    SET popular = NOT popular
+    WHERE id = $1
+  `
+  return await executeQuery(query, [postId])
+}
+
+export async function DSuserToSellerFn(userId) {
+  const query = `
+    UPDATE users
+    SET seller = NOT seller
+    WHERE user_id = $1
+  `
+  return await executeQuery(query, [userId])
+}

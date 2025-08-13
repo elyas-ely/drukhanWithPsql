@@ -1,6 +1,8 @@
 import {
   DSgetAllUsersFn,
   DSgetSearchUsersFn,
+  DSpostToPopularFn,
+  DSuserToSellerFn,
 } from '../services/dashboardService.js'
 
 export async function DSgetAllUsers(req, res) {
@@ -34,5 +36,50 @@ export async function DSgetSearchUsers(req, res) {
   } catch (err) {
     console.error('Error in DSgetSearchUsers:', err)
     res.status(500).json({ error: 'Failed to retrieve users' })
+  }
+}
+
+// =======================================
+// ====== UPDATE POST TO POPULAR OR ONT ==
+// =======================================
+export async function DSpostToPopular(req, res) {
+  const postId = req.query?.postId
+
+  if (!postId) {
+    return res
+      .status(400)
+      .json({ message: 'Post ID is required DSpostToPopular' })
+  }
+  try {
+    const post = await DSpostToPopularFn(postId)
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' })
+    }
+    res.status(200).json({ message: 'post updated susccesfully ' })
+  } catch (err) {
+    console.error('Error in postToPopularFn:', err)
+    res.status(500).json({ error: 'Failed to retrieve post (postToPopularFn)' })
+  }
+}
+
+// =======================================
+// ====== UPDATE USER TO SELLER OR NOT ===
+// =======================================
+export async function DSuserToSeller(req, res) {
+  const userId = req.query?.userId
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' })
+  }
+
+  try {
+    const user = await DSuserToSellerFn(userId)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    res.status(200).json({ message: 'user updated susccesfully ' })
+  } catch (err) {
+    console.error('Error in userToSeller:', err)
+    res.status(500).json({ error: 'Failed to retrieve user (userToSeller)' })
   }
 }
