@@ -249,7 +249,7 @@ export const getSponsoredPosts = async (req, res) => {
 }
 
 // =======================================
-// ============== CREATE POST ============
+// ============== CREATE POST =============
 // =======================================
 export const createPost = async (req, res) => {
   try {
