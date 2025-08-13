@@ -10,7 +10,7 @@ const pool = new Pool({
   max: 10, // Maximum number of clients in the pool
   min: 2,
   idleTimeoutMillis: 10000, // How long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 5000, // How long to wait for a connection
+  connectionTimeoutMillis: 5000, // How long to wait for a connection .
 })
 
 // Add event listeners for pool errors
