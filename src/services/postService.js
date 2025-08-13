@@ -235,20 +235,20 @@ export const getPostsByUserIdFn = async (userId, myId, limit, offset) => {
 // =======================================
 // ========= GET SPONSORED POSTS ========
 // =======================================
-export const getSponsoredPostsFn = async (userId, myId) => {
+export const getSponsoredPostsFn = async (userId) => {
   const query = `SELECT 
     p.*,
     u.username,
     u.profile,
     u.city,
     (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = p.id) AS likes_count,
-    EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $2 AND l.post_id = p.id)::BOOLEAN AS like_status,
-    EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $2 AND s.post_id = p.id)::BOOLEAN AS save_status
+    EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = p.id)::BOOLEAN AS like_status,
+    EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = p.id)::BOOLEAN AS save_status
   FROM posts p
   JOIN users u ON p.user_id = u.user_id
   WHERE p.sponsored = true AND p.user_id = $1
   ORDER BY p.created_at DESC`
-  return await executeQuery(query, [userId, myId])
+  return await executeQuery(query, [userId])
 }
 
 // =======================================
