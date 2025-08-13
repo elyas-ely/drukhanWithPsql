@@ -1,3 +1,4 @@
+import { client } from '../config/db.js'
 import { executeQuery } from '../utils/helpingFunctions.js'
 // =======================================
 // ============== GET ALL POSTS ==========
