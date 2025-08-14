@@ -8,17 +8,21 @@ import {
   updateViewedUsersFn,
   getSearchUsersFn,
 } from '../services/userService.js'
-import { logger } from '../utils/logger.js'
 
 // =======================================
 // ============= GET ALL USERS ===========
 // =======================================
 export const getAllUsers = async (req, res) => {
-  const searchTerm = req.query?.searchTerm || ''
-  const city = req.query?.city || ''
+  const { searchTerm = '', city = '' } = req.query
   const page = parseInt(req.query?.page) || 1
   const limit = 15
   const offset = (page - 1) * limit
+
+  if (!searchTerm) {
+    return res.status(400).json({
+      message: 'searchTerm is required (getAllUsers)',
+    })
+  }
 
   try {
     const users = await getAllUsersFn(searchTerm, city, limit, offset)
@@ -38,14 +42,18 @@ export const getAllUsers = async (req, res) => {
 // =======================================
 export const getSearchUsers = async (req, res) => {
   const searchTerm = req.query?.searchTerm
+
+  if (!searchTerm) {
+    return res.status(400).json({
+      message: 'searchTerm is required (getSearchUsers)',
+    })
+  }
   try {
     const users = await getSearchUsersFn(searchTerm)
-    if (users.length === 0) {
-      return res.status(404).json({ message: 'No users found' })
-    }
+
     res.status(200).json(users)
   } catch (err) {
-    console.error('Error in getAllUsers:', err)
+    console.error('Error in getSearchUsers:', err)
     res.status(500).json({ error: 'Failed to retrieve users' })
   }
 }
@@ -54,7 +62,7 @@ export const getSearchUsers = async (req, res) => {
 // ============ GET USER BY ID ===========
 // =======================================
 export const getUserById = async (req, res) => {
-  const userId = req.params?.userId
+  const { userId } = req.params
 
   if (!userId) {
     return res.status(400).json({ message: 'userId is required (getUserById)' })
@@ -80,22 +88,22 @@ export const getUserById = async (req, res) => {
 // ============ GET VIEWED USERS ===========
 // =======================================
 export const getViewedUsers = async (req, res) => {
-  const userId = req.params.userId
+  const { userId } = req.params
 
   if (!userId) {
-    return res
-      .status(400)
-      .json({ message: 'userId is required (getViewedUsers)' })
+    return res.status(400).json({
+      message: 'userId is required (getViewedUsers)',
+    })
   }
 
   try {
     const viewedUsers = await getViewedUsersFn(userId)
     return res.status(200).json(viewedUsers)
-  } catch (error) {
-    console.error('Error in getViewedUsers:', error)
-    return res
-      .status(500)
-      .json({ error: 'Failed to retrieve users (getViewedUsers)' })
+  } catch (err) {
+    console.error('Error in getViewedUsers:', err)
+    return res.status(500).json({
+      error: 'Failed to retrieve users (getViewedUsers)',
+    })
   }
 }
 
@@ -104,6 +112,12 @@ export const getViewedUsers = async (req, res) => {
 // =======================================
 export const createUser = async (req, res) => {
   const userData = req.body
+
+  if (!userData || Object.keys(userData).length === 0) {
+    return res
+      .status(400)
+      .json({ message: 'User data is required (createUser)' })
+  }
 
   try {
     await createUserFn(userData)

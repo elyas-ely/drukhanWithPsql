@@ -8,12 +8,10 @@ export const getAllCarRequestsFn = async (city) => {
     SELECT cr.*, 
            u.username,
            u.profile
-      FROM car_requests cr 
-      INNER JOIN users u 
-        ON cr.user_id = u.user_id
+      FROM car_requests cr
+      INNER JOIN users u ON cr.user_id = u.user_id
     WHERE cr.status = 'approved'
   `
-
   const values = []
 
   if (city) {
@@ -21,7 +19,14 @@ export const getAllCarRequestsFn = async (city) => {
     values.push(city)
   }
 
-  return await executeQuery(query, values)
+  // Order by newest requests first
+  query += ` ORDER BY cr.created_at DESC`
+
+  try {
+    return await executeQuery(query, values)
+  } catch (err) {
+    throw err
+  }
 }
 
 // =======================================

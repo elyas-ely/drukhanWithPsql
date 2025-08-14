@@ -98,6 +98,60 @@ export async function DSuserToSellerFn(userId) {
   return await executeQuery(query, [userId])
 }
 
+// =======================================
+// ============== GET ALL CAR REQUESTS =======
+// =======================================
+export const DSgetAllCarRequestsFn = async (city) => {
+  let query = `
+    SELECT cr.*, 
+           u.username,
+           u.profile
+      FROM car_requests cr
+      INNER JOIN users u ON cr.user_id = u.user_id
+  `
+  const values = []
+
+  if (city) {
+    query += ` AND cr.city = $1`
+    values.push(city)
+  }
+
+  // Order by newest requests first
+  query += ` ORDER BY cr.created_at DESC`
+
+  try {
+    return await executeQuery(query, values)
+  } catch (err) {
+    throw err
+  }
+}
+
+// =======================================
+// ============== GET REQUEST BY ID ======
+// =======================================
+export const DSgetCarRequestByIdFn = async (id) => {
+  const query = `SELECT cr.*, 
+    u.username,
+    u.profile
+    FROM car_requests cr 
+    INNER JOIN users u 
+    ON cr.user_id = u.user_id
+    WHERE cr.id = $1`
+
+  const values = [id]
+
+  return await executeQuery(query, values)
+}
+export async function DSchangeCarResquestStatusFn(id, status) {
+  const query = `
+    UPDATE car_requests
+    SET status = $2
+    WHERE id = $1
+    RETURNING *
+  `
+  return await executeQuery(query, [id, status])
+}
+
 export async function DSgivePostLikesFn(postId, numberOfLikes) {
   try {
     const { values, placeholders } = generateLikes(postId, numberOfLikes)

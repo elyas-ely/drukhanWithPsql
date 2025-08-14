@@ -1,6 +1,9 @@
 import {
+  DSchangeCarResquestStatusFn,
   DSdeleteLikesFn,
+  DSgetAllCarRequestsFn,
   DSgetAllUsersFn,
+  DSgetCarRequestByIdFn,
   DSgetSearchUsersFn,
   DSgivePostLikesFn,
   DSpostToPopularFn,
@@ -83,6 +86,76 @@ export async function DSuserToSeller(req, res) {
   } catch (err) {
     console.error('Error in userToSeller:', err)
     res.status(500).json({ error: 'Failed to retrieve user (userToSeller)' })
+  }
+}
+
+// =======================================
+// ============== GET ALL CAR REQUESTS =======
+// =======================================
+export const DSgetAllCarRequests = async (req, res) => {
+  const city = req.query.city || null
+
+  try {
+    const carRequests = await DSgetAllCarRequestsFn(city)
+
+    return res.status(200).json(carRequests)
+  } catch (err) {
+    console.error('Error in DSgetAllCarRequests:', err)
+    return res.status(500).json({
+      message: 'Failed to retrieve car requests (DSgetAllCarRequests)',
+    })
+  }
+}
+
+// =======================================
+// ============== GET REQUEST BY ID ======
+// =======================================
+export const DSgetCarRequestById = async (req, res) => {
+  const { id } = req.params
+
+  if (!id) {
+    return res.status(400).json({
+      message: 'Missing required parameters: id (DSgetCarRequestById)',
+    })
+  }
+
+  try {
+    const carRequest = await DSgetCarRequestByIdFn(id)
+
+    if (!carRequest) {
+      return res.status(404).json({ message: 'Car request not found' })
+    }
+
+    return res.status(200).json(carRequest)
+  } catch (error) {
+    console.error('Error in DSgetCarRequestById:', error)
+    return res.status(500).json({ message: 'Failed to retrieve car request' })
+  }
+}
+// =======================================
+// ====== UPDATE USER TO SELLER OR NOT ===
+// =======================================
+export async function DSchangeCarResquestStatus(req, res) {
+  const { id } = req.params
+  const { status } = req.query
+
+  if (!id || !status) {
+    return res
+      .status(400)
+      .json({ message: 'Car request post ID or status is required' })
+  }
+
+  try {
+    const carRequstPost = await DSchangeCarResquestStatusFn(id, status)
+    if (!carRequstPost) {
+      return res.status(404).json({ message: 'Car post not found' })
+    }
+    res.status(200).json({ message: 'carRequstPost updated susccesfully ' })
+  } catch (err) {
+    console.error('Error in carRequstPost:', err)
+    res
+      .status(500)
+      .json({ error: 'Failed to retrieve user (DSchangeCarResquestStatus)' })
   }
 }
 
