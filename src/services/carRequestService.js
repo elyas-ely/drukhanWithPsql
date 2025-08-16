@@ -3,7 +3,7 @@ import { executeQuery } from '../utils/helpingFunctions.js'
 // =======================================
 // ============== GET ALL REQUESTS =======
 // =======================================
-export const getAllCarRequestsFn = async (city) => {
+export const getAllCarRequestsFn = async (city, limit, offset) => {
   let query = `
     SELECT cr.*, 
            u.username,
@@ -12,6 +12,7 @@ export const getAllCarRequestsFn = async (city) => {
       INNER JOIN users u ON cr.user_id = u.user_id
     WHERE cr.status = 'approved'
   `
+
   const values = []
 
   if (city) {
@@ -19,8 +20,9 @@ export const getAllCarRequestsFn = async (city) => {
     values.push(city)
   }
 
-  // Order by newest requests first
-  query += ` ORDER BY cr.created_at DESC`
+  // Append ORDER BY, LIMIT, OFFSET for both cases
+  query += ` ORDER BY cr.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
+  values.push(limit, offset)
 
   try {
     return await executeQuery(query, values)
@@ -48,7 +50,7 @@ export const getAllUserCarRequestsFn = async (userId, status) => {
 
   // Add status filter if status is NOT 'all'
   if (status && status.toLowerCase() !== 'all') {
-    query += ` AND cr.status = $2`
+    query += ` AND cr.status = $2 ORDER BY cr.created_at DESC`
     values.push(status)
   }
 
@@ -69,7 +71,8 @@ export const getCarRequestByIdFn = async (id, userId) => {
 
   const values = [id, userId]
 
-  return await executeQuery(query, values)
+  const rows = await executeQuery(query, values)
+  return rows[0]
 }
 
 // =======================================
@@ -177,7 +180,7 @@ export const updateCarRequestFn = async (id, userId, data) => {
 
   const query = `
     UPDATE car_requests
-    SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP
+    SET ${setClauses.join(', ')}, status = 'pending', updated_at = CURRENT_TIMESTAMP
     WHERE id = $${index} AND user_id = $${index + 1}
     RETURNING *;
   `

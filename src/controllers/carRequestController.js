@@ -12,11 +12,17 @@ import {
 // =======================================
 export const getAllCarRequests = async (req, res) => {
   const city = req.query.city || null
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
 
   try {
-    const carRequests = await getAllCarRequestsFn(city)
+    const posts = await getAllCarRequestsFn(city, limit, offset)
 
-    return res.status(200).json(carRequests)
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1, // Indicate if more pages exist
+    })
   } catch (err) {
     console.error('Error in getAllCarRequests:', err)
     return res.status(500).json({
@@ -82,6 +88,8 @@ export const getCarRequestById = async (req, res) => {
 // =======================================
 export const createCarRequest = async (req, res) => {
   const data = req.body || {}
+
+  console.log(data)
 
   if (!data.user_id || !data.car_name || !data.city) {
     return res.status(400).json({
