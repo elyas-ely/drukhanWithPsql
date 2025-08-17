@@ -50,9 +50,12 @@ export const getAllUserCarRequestsFn = async (userId, status) => {
 
   // Add status filter if status is NOT 'all'
   if (status && status.toLowerCase() !== 'all') {
-    query += ` AND cr.status = $2 ORDER BY cr.created_at DESC`
+    query += ` AND cr.status = $2`
     values.push(status)
   }
+
+  // Always order by created_at DESC
+  query += ` ORDER BY cr.created_at DESC`
 
   return await executeQuery(query, values)
 }

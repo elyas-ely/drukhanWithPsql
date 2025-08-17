@@ -13,7 +13,7 @@ import {
 export const getAllCarRequests = async (req, res) => {
   const city = req.query.city || null
   const page = parseInt(req.query?.page) || 1
-  const limit = 12
+  const limit = 6
   const offset = (page - 1) * limit
 
   try {
@@ -88,8 +88,6 @@ export const getCarRequestById = async (req, res) => {
 // =======================================
 export const createCarRequest = async (req, res) => {
   const data = req.body || {}
-
-  console.log(data)
 
   if (!data.user_id || !data.car_name || !data.city) {
     return res.status(400).json({
