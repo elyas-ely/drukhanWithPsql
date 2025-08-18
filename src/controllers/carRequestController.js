@@ -48,16 +48,11 @@ export const getAllUserCarRequests = async (req, res) => {
   }
 
   try {
-    const carRequests = await getAllUserCarRequestsFn(
-      userId,
-      status,
-      limit,
-      offset
-    )
+    const posts = await getAllUserCarRequestsFn(userId, status, limit, offset)
 
     res.status(200).json({
-      carRequests,
-      nextPage: carRequests.length < limit ? null : page + 1, // Indicate if more pages exist
+      posts,
+      nextPage: posts.length < limit ? null : page + 1, // Indicate if more pages exist
     })
   } catch (err) {
     console.error('Error in getAllUserCarRequests:', err)
