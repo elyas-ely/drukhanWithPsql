@@ -142,14 +142,14 @@ export const DSgetCarRequestByIdFn = async (id) => {
 
   return await executeQuery(query, values)
 }
-export async function DSchangeCarResquestStatusFn(id, status) {
+export async function DSchangeCarResquestStatusFn(id, status, rejectionReason) {
   const query = `
     UPDATE car_requests
-    SET status = $2
+    SET status = $2, rejection_reason = $3
     WHERE id = $1
     RETURNING *
   `
-  return await executeQuery(query, [id, status])
+  return await executeQuery(query, [id, status, rejectionReason])
 }
 
 export async function DSgivePostLikesFn(postId, numberOfLikes) {

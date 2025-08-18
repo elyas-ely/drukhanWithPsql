@@ -10,6 +10,9 @@ import {
   DSuserToSellerFn,
 } from '../services/dashboardService.js'
 
+// =======================================
+// ============== GET ALL USERS =============
+// =======================================
 export async function DSgetAllUsers(req, res) {
   const searchTerm = req.query?.searchTerm || ''
   const city = req.query?.city || ''
@@ -30,6 +33,9 @@ export async function DSgetAllUsers(req, res) {
   }
 }
 
+// =======================================
+// =========== GET SEARCH USERS ==========
+// =======================================
 export async function DSgetSearchUsers(req, res) {
   const searchTerm = req.query?.searchTerm
   try {
@@ -45,7 +51,7 @@ export async function DSgetSearchUsers(req, res) {
 }
 
 // =======================================
-// ====== UPDATE POST TO POPULAR OR ONT ==
+// ==== UPDATE POST TO POPULAR OR NOT ====
 // =======================================
 export async function DSpostToPopular(req, res) {
   const postId = req.query?.postId
@@ -68,7 +74,7 @@ export async function DSpostToPopular(req, res) {
 }
 
 // =======================================
-// ====== UPDATE USER TO SELLER OR NOT ===
+// ===== UPDATE USER TO SELLER OR NOT ====
 // =======================================
 export async function DSuserToSeller(req, res) {
   const userId = req.query?.userId
@@ -90,9 +96,9 @@ export async function DSuserToSeller(req, res) {
 }
 
 // =======================================
-// ============== GET ALL CAR REQUESTS =======
+// ========== GET ALL CAR REQUESTS =======
 // =======================================
-export const DSgetAllCarRequests = async (req, res) => {
+export async function DSgetAllCarRequests(req, res) {
   const city = req.query.city || null
 
   try {
@@ -108,9 +114,9 @@ export const DSgetAllCarRequests = async (req, res) => {
 }
 
 // =======================================
-// ============== GET REQUEST BY ID ======
+// ======== GET REQUEST BY ID ============
 // =======================================
-export const DSgetCarRequestById = async (req, res) => {
+export async function DSgetCarRequestById(req, res) {
   const { id } = req.params
 
   if (!id) {
@@ -132,12 +138,13 @@ export const DSgetCarRequestById = async (req, res) => {
     return res.status(500).json({ message: 'Failed to retrieve car request' })
   }
 }
+
 // =======================================
-// ====== UPDATE USER TO SELLER OR NOT ===
+// ===== UPDATE USER TO SELLER OR NOT ====
 // =======================================
 export async function DSchangeCarResquestStatus(req, res) {
   const { id } = req.params
-  const { status } = req.query
+  const { status, rejectionReason = null } = req.query
 
   if (!id || !status) {
     return res
@@ -146,7 +153,11 @@ export async function DSchangeCarResquestStatus(req, res) {
   }
 
   try {
-    const carRequstPost = await DSchangeCarResquestStatusFn(id, status)
+    const carRequstPost = await DSchangeCarResquestStatusFn(
+      id,
+      status,
+      rejectionReason
+    )
     if (!carRequstPost) {
       return res.status(404).json({ message: 'Car post not found' })
     }
@@ -160,7 +171,7 @@ export async function DSchangeCarResquestStatus(req, res) {
 }
 
 // =======================================
-// ====== give a post likes ===
+// ============ GIVE A POST LIKES ========
 // =======================================
 export async function DSgivePostLikes(req, res) {
   const postId = Number(req.params?.postId)
@@ -187,7 +198,7 @@ export async function DSgivePostLikes(req, res) {
 }
 
 // =======================================
-// ====== delete a post likes ===
+// ========= DELETE A POST LIKES =========
 // =======================================
 export async function DSdeleteLikes(req, res) {
   const postId = Number(req.params?.postId)
