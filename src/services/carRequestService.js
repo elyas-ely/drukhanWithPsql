@@ -34,7 +34,12 @@ export const getAllCarRequestsFn = async (city, limit, offset) => {
 // =======================================
 // ============== GET ALL USER REQUESTS ==
 // =======================================
-export const getAllUserCarRequestsFn = async (userId, status) => {
+export const getAllUserCarRequestsFn = async (
+  userId,
+  status,
+  limit,
+  offset
+) => {
   // Base query and parameters
   let query = `
     SELECT cr.*, 
@@ -56,6 +61,9 @@ export const getAllUserCarRequestsFn = async (userId, status) => {
 
   // Always order by created_at DESC
   query += ` ORDER BY cr.created_at DESC`
+
+  query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
+  values.push(limit, offset)
 
   return await executeQuery(query, values)
 }

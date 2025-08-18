@@ -37,6 +37,9 @@ export const getAllCarRequests = async (req, res) => {
 export const getAllUserCarRequests = async (req, res) => {
   const userId = req.query.userId
   const status = req.query.status || 'all'
+  const page = parseInt(req.query?.page) || 1
+  const limit = 6
+  const offset = (page - 1) * limit
 
   if (!userId) {
     return res
@@ -45,9 +48,17 @@ export const getAllUserCarRequests = async (req, res) => {
   }
 
   try {
-    const carRequests = await getAllUserCarRequestsFn(userId, status)
+    const carRequests = await getAllUserCarRequestsFn(
+      userId,
+      status,
+      limit,
+      offset
+    )
 
-    return res.status(200).json(carRequests)
+    res.status(200).json({
+      carRequests,
+      nextPage: carRequests.length < limit ? null : page + 1, // Indicate if more pages exist
+    })
   } catch (err) {
     console.error('Error in getAllUserCarRequests:', err)
     return res.status(500).json({
