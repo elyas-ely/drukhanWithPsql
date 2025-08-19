@@ -13,7 +13,7 @@ import {
 export const getAllCarRequests = async (req, res) => {
   const city = req.query.city || null
   const page = parseInt(req.query?.page) || 1
-  const limit = 6
+  const limit = 12
   const offset = (page - 1) * limit
 
   try {
