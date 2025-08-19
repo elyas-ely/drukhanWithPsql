@@ -38,7 +38,7 @@ export const getAllUserCarRequests = async (req, res) => {
   const userId = req.query.userId
   const status = req.query.status || 'all'
   const page = parseInt(req.query?.page) || 1
-  const limit = 6
+  const limit = 12
   const offset = (page - 1) * limit
 
   if (!userId) {
