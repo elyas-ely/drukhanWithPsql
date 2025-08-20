@@ -148,11 +148,7 @@ export const getSearchPosts = async (req, res) => {
   const searchTerm = req.query?.searchTerm
   try {
     const posts = await getSearchPostsFn(searchTerm)
-    if (posts.length === 0) {
-      return res
-        .status(404)
-        .json({ message: 'No posts found (getSearchPosts)' })
-    }
+
     res.status(200).json(posts)
   } catch (err) {
     console.error('Error in getSearchPosts:', err)

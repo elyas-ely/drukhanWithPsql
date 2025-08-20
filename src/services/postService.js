@@ -101,17 +101,15 @@ export const getSearchPostsFn = async (searchTerm, limit = 10) => {
   const query = `
     SELECT 
       id, 
-      car_name,
-      similarity(unaccent(car_name), unaccent($1)) AS sim,
-      ts_rank_cd(
-        setweight(to_tsvector('simple', unaccent(car_name)), 'A'), 
-        plainto_tsquery('simple', unaccent($1))
-      ) AS rank
+      car_name
     FROM posts
-    WHERE 
+    WHERE
+    sold_out IS NOT TRUE
+      AND (
       similarity(unaccent(car_name), unaccent($1)) > 0.15
       OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
       OR car_name ILIKE '%' || $1 || '%'
+      )
     ORDER BY 
       -- Prioritize exact prefix match highest
       CASE WHEN car_name ILIKE $1 || '%' THEN 1
@@ -119,8 +117,6 @@ export const getSearchPostsFn = async (searchTerm, limit = 10) => {
            WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 3
            ELSE 4
       END,
-      sim DESC,
-      rank DESC,
       car_name ASC
     LIMIT $2;
   `
@@ -182,11 +178,6 @@ export const getFilteredPostFn = async (filters, userId, limit, offset) => {
 
     const query = `
       SELECT posts.*,
-        similarity(unaccent(car_name), unaccent($${searchTermIndex})) AS sim,
-        ts_rank_cd(
-          setweight(to_tsvector('simple', unaccent(car_name)), 'A'),
-          plainto_tsquery('simple', unaccent($${searchTermIndex}))
-        ) AS rank,
         (SELECT COUNT(*)::int FROM likes l WHERE l.post_id = posts.id) AS likes_count,
         EXISTS (SELECT 1 FROM likes l WHERE l.user_id = $1 AND l.post_id = posts.id)::BOOLEAN AS like_status,
         EXISTS (SELECT 1 FROM saves s WHERE s.user_id = $1 AND s.post_id = posts.id)::BOOLEAN AS save_status
@@ -200,8 +191,6 @@ export const getFilteredPostFn = async (filters, userId, limit, offset) => {
           WHEN similarity(unaccent(car_name), unaccent($${searchTermIndex})) > 0.15 THEN 3
           ELSE 4
         END,
-        sim DESC,
-        rank DESC,
         car_name ASC,
         created_at DESC
       LIMIT $${limitIdx} OFFSET $${offsetIdx};
