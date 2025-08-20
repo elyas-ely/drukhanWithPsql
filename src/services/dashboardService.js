@@ -48,6 +48,9 @@ export async function DSgetAllUsersFn(searchTerm, city, limit, offset) {
   return await executeQuery(query, params)
 }
 
+// =======================================
+// ============ GET SEARCH USERS =========
+// =======================================
 export async function DSgetSearchUsersFn(searchTerm, limit = 6) {
   const query = `
     SELECT *,
@@ -80,15 +83,23 @@ export async function DSgetSearchUsersFn(searchTerm, limit = 6) {
   return await executeQuery(query, [searchTerm, limit])
 }
 
+// =======================================
+// ============ POST TO POPULAR ==========
+// =======================================
 export async function DSpostToPopularFn(postId) {
   const query = `
     UPDATE posts
-    SET popular = NOT popular
+    SET
+      popular = NOT popular,
+      sponsored = NOT popular
     WHERE id = $1
   `
   return await executeQuery(query, [postId])
 }
 
+// =======================================
+// ============ USER TO SELLER ===========
+// =======================================
 export async function DSuserToSellerFn(userId) {
   const query = `
     UPDATE users
@@ -99,9 +110,9 @@ export async function DSuserToSellerFn(userId) {
 }
 
 // =======================================
-// ============== GET ALL CAR REQUESTS =======
+// ============== GET ALL CAR REQUESTS ===
 // =======================================
-export const DSgetAllCarRequestsFn = async (city) => {
+export async function DSgetAllCarRequestsFn(city) {
   let query = `
     SELECT cr.*, 
            u.username,
@@ -129,7 +140,7 @@ export const DSgetAllCarRequestsFn = async (city) => {
 // =======================================
 // ============== GET REQUEST BY ID ======
 // =======================================
-export const DSgetCarRequestByIdFn = async (id) => {
+export async function DSgetCarRequestByIdFn(id) {
   const query = `SELECT cr.*, 
     u.username,
     u.profile
@@ -142,6 +153,10 @@ export const DSgetCarRequestByIdFn = async (id) => {
 
   return await executeQuery(query, values)
 }
+
+// =======================================
+// ========= CHANGE CAR REQUEST STATUS ===
+// =======================================
 export async function DSchangeCarResquestStatusFn(id, status, rejectionReason) {
   const query = `
     UPDATE car_requests
@@ -152,6 +167,9 @@ export async function DSchangeCarResquestStatusFn(id, status, rejectionReason) {
   return await executeQuery(query, [id, status, rejectionReason])
 }
 
+// =======================================
+// =========== GIVE POST LIKES ===========
+// =======================================
 export async function DSgivePostLikesFn(postId, numberOfLikes) {
   try {
     const { values, placeholders } = generateLikes(postId, numberOfLikes)
@@ -163,6 +181,9 @@ export async function DSgivePostLikesFn(postId, numberOfLikes) {
   }
 }
 
+// =======================================
+// ============ DELETE LIKES =============
+// =======================================
 export async function DSdeleteLikesFn(postId, numberOfLikes) {
   const query = `
     DELETE FROM likes

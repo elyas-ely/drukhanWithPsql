@@ -17,6 +17,7 @@ import {
   updateLike,
   updateViewedPosts,
   updatePostStatus,
+  getSponsoredFilteredPost,
 } from '../controllers/postController.js'
 
 const router = express.Router()
@@ -29,6 +30,7 @@ router.get('/popular', getPopularPosts)
 router.get('/sponsored', getSponsoredPosts)
 router.get('/search', getSearchPosts)
 router.get('/filtered', getFilteredPost)
+router.get('/sponsored-filtered', getSponsoredFilteredPost)
 router.get('/saves/:userId', getSavesPost)
 router.get('/viewed/:userId', getViewedPost)
 router.get('/user/:userId', getPostsByUserId)
