@@ -168,6 +168,7 @@ export const getFilteredPostFn = async (filters, userId, limit, offset) => {
       }
     })
 
+    queryParts.push(`posts.sold_out IS NOT TRUE`)
     if (queryParts.length === 0) {
       console.log('No valid filters applied, returning empty array.')
       return []
