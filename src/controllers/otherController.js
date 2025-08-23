@@ -45,10 +45,10 @@ export const getAllNotifications = async (req, res) => {
 
 export const getAppVersion = async (req, res) => {
   try {
-    const version = '1.0.0'
+    const version = '1.2.11'
     res.status(200).json({ version })
   } catch (err) {
-    console.error('Error in getAppVersionFn:', err)
+    console.error('Error in getAppVersion:', err)
     res.status(500).json({ message: 'Failed to retrieve app version' })
   }
 }
