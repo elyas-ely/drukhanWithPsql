@@ -1,10 +1,7 @@
+================ TODO TASKS ==============
 1: admin should get all rejected, approved, pending car posts
 2: sold out in sponsor should update the catch
 
-.
-.
-.
-.
 .
 .
 .
@@ -25,5 +22,10 @@
 6: sponsored users
 7: rewards
 
+.
+.
+.
 ================= OTHERS ====================
 1: advence dashboard
+2: backend optimization / auth / middlewares
+3:
