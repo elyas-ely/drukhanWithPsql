@@ -45,7 +45,7 @@ export const getAllNotifications = async (req, res) => {
 
 export const getAppVersion = async (req, res) => {
   try {
-    const version = '1.2.11'
+    const version = '1.2.10'
     res.status(200).json({ version })
   } catch (err) {
     console.error('Error in getAppVersion:', err)
