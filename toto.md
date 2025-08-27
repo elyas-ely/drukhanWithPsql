@@ -1,6 +1,7 @@
 ================ TODO TASKS ==============
 1: admin should get all rejected, approved, pending car posts
-2: sold out in sponsor should update the catch
+2: likes are not working for sponsored user profile screen
+3: suggestions search result should filer in the backend
 
 .
 .
@@ -21,7 +22,7 @@
 5: Profile frames
 6: sponsored users
 7: rewards
-
+8: Report and blocking should work
 .
 .
 .

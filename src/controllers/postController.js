@@ -257,16 +257,16 @@ export const getPostsByUserId = async (req, res) => {
 // ========= GET SPONSORED POSTS ========
 // =======================================
 export const getSponsoredPosts = async (req, res) => {
-  const userId = req.query?.userId
+  const { userId, myId } = req.query
 
-  if (!userId) {
+  if (!userId || !myId) {
     return res
       .status(400)
       .json({ error: 'User ID is required (getSponsoredPosts)' })
   }
 
   try {
-    const posts = await getSponsoredPostsFn(userId)
+    const posts = await getSponsoredPostsFn(userId, myId)
 
     const updatedPosts = posts.map((post) => ({
       ...post,
