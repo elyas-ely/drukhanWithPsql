@@ -43,12 +43,25 @@ export const getAllNotifications = async (req, res) => {
   }
 }
 
-export const getAppVersion = async (req, res) => {
+export const getServerData = async (req, res) => {
   try {
-    const version = '1.2.11'
-    res.status(200).json({ version })
+    const data = {
+      android: {
+        latestVersion: '1.2.11',
+      },
+      ios: {
+        latestVersion: '1.2.11',
+      },
+      underWorking: false,
+    }
+
+    return res.status(200).json(data)
   } catch (err) {
-    console.error('Error in getAppVersion:', err)
-    res.status(500).json({ message: 'Failed to retrieve app version' })
+    console.error('Error in getServerData:', err)
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve app version',
+      error: err.message,
+    })
   }
 }
