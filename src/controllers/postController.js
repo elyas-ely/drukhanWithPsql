@@ -146,12 +146,33 @@ export const getViewedPost = async (req, res) => {
 // ============= GET SEARCH POSTS ========
 // =======================================
 export const getSearchPosts = async (req, res) => {
-  const searchTerm = req.query?.searchTerm
-  const limit = 10
-  try {
-    const posts = await getSearchPostsFn(searchTerm, limit)
+  const { searchTerm } = req.query
+  const targetLimit = 10
 
-    res.status(200).json(posts)
+  try {
+    let offset = 0
+    const batchSize = 10
+    const uniqueMap = new Map()
+
+    while (uniqueMap.size < targetLimit) {
+      const posts = await getSearchPostsFn(searchTerm, batchSize, offset)
+
+      if (!posts || posts.length === 0) break // no more results
+
+      for (const post of posts) {
+        const key = post.car_name.toLowerCase()
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, post)
+          if (uniqueMap.size >= targetLimit) break
+        }
+      }
+
+      offset += batchSize
+    }
+
+    const uniquePosts = Array.from(uniqueMap.values())
+
+    res.status(200).json(uniquePosts)
   } catch (err) {
     console.error('Error in getSearchPosts:', err)
     res.status(500).json({ error: 'Failed to retrieve posts (getSearchPosts)' })

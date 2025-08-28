@@ -97,31 +97,31 @@ export const getViewedPostFn = async (userId) => {
 // =======================================
 // ============ GET SEARCH POSTS ============
 // =======================================
-export const getSearchPostsFn = async (searchTerm, limit = 10) => {
+export const getSearchPostsFn = async (searchTerm, limit, offset = 0) => {
   const query = `
-    SELECT 
-      id, 
+    SELECT DISTINCT ON (LOWER(car_name))
+      id,
       car_name
     FROM posts
-    WHERE
-    sold_out IS NOT TRUE
+    WHERE sold_out IS NOT TRUE
       AND (
-      similarity(unaccent(car_name), unaccent($1)) > 0.15
-      OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
-      OR car_name ILIKE '%' || $1 || '%'
+        similarity(unaccent(car_name), unaccent($1)) > 0.15
+        OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
+        OR car_name ILIKE '%' || $1 || '%'
       )
-    ORDER BY 
-      -- Prioritize exact prefix match highest
-      CASE WHEN car_name ILIKE $1 || '%' THEN 1
-           WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
-           WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 3
-           ELSE 4
+    ORDER BY LOWER(car_name), 
+      -- prioritize exact prefix match
+      CASE 
+        WHEN car_name ILIKE $1 || '%' THEN 1
+        WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
+        WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 3
+        ELSE 4
       END,
       car_name ASC
-    LIMIT $2;
+    LIMIT $2 OFFSET $3;
   `
 
-  return await executeQuery(query, [searchTerm, limit])
+  return await executeQuery(query, [searchTerm, limit, offset])
 }
 
 // =======================================
