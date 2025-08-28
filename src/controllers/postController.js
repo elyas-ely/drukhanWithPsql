@@ -147,8 +147,9 @@ export const getViewedPost = async (req, res) => {
 // =======================================
 export const getSearchPosts = async (req, res) => {
   const searchTerm = req.query?.searchTerm
+  const limit = 10
   try {
-    const posts = await getSearchPostsFn(searchTerm)
+    const posts = await getSearchPostsFn(searchTerm, limit)
 
     res.status(200).json(posts)
   } catch (err) {

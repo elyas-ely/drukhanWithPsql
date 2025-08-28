@@ -2,7 +2,7 @@ import express from 'express'
 import {
   getAllBanners,
   getAllNotifications,
-  getAppVersion,
+  getAppConfig,
 } from '../controllers/otherController.js'
 
 const router = express.Router()
@@ -12,6 +12,6 @@ const router = express.Router()
 // =======================================
 router.get('/banners', getAllBanners)
 router.get('/notifications', getAllNotifications)
-router.get('/version', getAppVersion)
+router.get('/version', getAppConfig)
 
 export default router

@@ -43,7 +43,7 @@ export const getAllNotifications = async (req, res) => {
   }
 }
 
-export const getServerData = async (req, res) => {
+export const getAppConfig = async (req, res) => {
   try {
     const data = {
       android: {
