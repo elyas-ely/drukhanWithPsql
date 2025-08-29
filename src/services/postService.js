@@ -98,46 +98,76 @@ export const getViewedPostFn = async (userId) => {
 // ============ GET SEARCH POSTS ============
 // =======================================
 export const getSearchPostsFn = async (searchTerm, limit, offset = 0) => {
+  if (!searchTerm || !String(searchTerm).trim()) {
+    return []
+  }
+
   const query = `
-    WITH search_results AS (
-      SELECT 
+    WITH ts AS (
+      -- build a prefix tsquery: "toyota corolla" -> "toyota:* & corolla:*"
+      SELECT
         id,
         car_name,
-        -- Calculate match priority with exact match first
-        CASE 
-          WHEN car_name = $1 THEN 1 -- Exact character match (highest priority)
-          WHEN LOWER(unaccent(car_name)) = LOWER(unaccent($1)) THEN 2 -- Exact match case/accents insensitive
-          WHEN car_name ILIKE $1 || '%' THEN 3 -- Starts with search term
-          WHEN car_name ILIKE '%' || $1 || '%' THEN 4 -- Contains search term
-          WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 5 -- Full text search
-          WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 6 -- Similarity
-          ELSE 7
-        END as match_priority,
-        -- For secondary ordering within same priority
-        CASE 
-          WHEN car_name = $1 THEN 0 -- Exact match gets highest secondary priority
-          WHEN car_name ILIKE $1 || '%' THEN LENGTH(car_name) -- Shorter prefix matches first
-          ELSE -similarity(unaccent(car_name), unaccent($1)) -- Higher similarity first
-        END as secondary_rank
+        to_tsquery(
+          'simple',
+          regexp_replace(trim(unaccent($1)), '\\s+', ':* & ', 'g') || ':*'
+        ) AS tsq
       FROM posts
       WHERE sold_out IS NOT TRUE
-        AND (
-          car_name = $1
-          OR LOWER(unaccent(car_name)) = LOWER(unaccent($1))
-          OR car_name ILIKE $1 || '%'
-          OR car_name ILIKE '%' || $1 || '%'
-          OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
+    ),
+    scored AS (
+      SELECT
+        id,
+        car_name,
+        -- eligibility filter
+        (
+          to_tsvector('simple', unaccent(car_name)) @@ ts.tsq
+          OR unaccent(car_name) ILIKE '%' || unaccent($1) || '%'
           OR similarity(unaccent(car_name), unaccent($1)) > 0.15
-        )
+        ) AS matches,
+        -- features
+        (car_name = $1) AS exact_cs,
+        (LOWER(unaccent(car_name)) = LOWER(unaccent($1))) AS exact_ci,
+        (unaccent(car_name) ILIKE unaccent($1) || '%') AS prefix,
+        POSITION(unaccent($1) IN unaccent(car_name)) AS substr_pos,
+        ts_rank_cd(to_tsvector('simple', unaccent(car_name)), ts.tsq) AS ts_rank,
+        similarity(unaccent(car_name), unaccent($1)) AS tri_sim,
+        ABS(LENGTH(car_name) - LENGTH($1)) AS len_diff
+      FROM ts
+    ),
+    eligible AS (
+      SELECT * FROM scored WHERE matches
+    ),
+    dedup AS (
+      SELECT
+        *,
+        ROW_NUMBER() OVER (
+          PARTITION BY LOWER(car_name)
+          ORDER BY
+            (exact_cs)::int DESC,
+            (exact_ci)::int DESC,
+            (prefix)::int DESC,
+            CASE WHEN substr_pos > 0 THEN 1 ELSE 0 END DESC,
+            ts_rank DESC,
+            tri_sim DESC,
+            len_diff ASC,
+            car_name ASC
+        ) AS rn
+      FROM eligible
     )
-    SELECT DISTINCT ON (LOWER(car_name))
+    SELECT
       id,
       car_name
-    FROM search_results
-    ORDER BY 
-      LOWER(car_name), -- First order by normalized car name for DISTINCT ON
-      match_priority ASC,
-      secondary_rank ASC,
+    FROM dedup
+    WHERE rn = 1
+    ORDER BY
+      (exact_cs)::int DESC,
+      (exact_ci)::int DESC,
+      (prefix)::int DESC,
+      CASE WHEN substr_pos > 0 THEN 1 ELSE 0 END DESC,
+      ts_rank DESC,
+      tri_sim DESC,
+      len_diff ASC,
       car_name ASC
     LIMIT $2 OFFSET $3;
   `
