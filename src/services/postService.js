@@ -99,24 +99,45 @@ export const getViewedPostFn = async (userId) => {
 // =======================================
 export const getSearchPostsFn = async (searchTerm, limit, offset = 0) => {
   const query = `
+    WITH search_results AS (
+      SELECT 
+        id,
+        car_name,
+        -- Calculate match priority with exact match first
+        CASE 
+          WHEN car_name = $1 THEN 1 -- Exact character match (highest priority)
+          WHEN LOWER(unaccent(car_name)) = LOWER(unaccent($1)) THEN 2 -- Exact match case/accents insensitive
+          WHEN car_name ILIKE $1 || '%' THEN 3 -- Starts with search term
+          WHEN car_name ILIKE '%' || $1 || '%' THEN 4 -- Contains search term
+          WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 5 -- Full text search
+          WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 6 -- Similarity
+          ELSE 7
+        END as match_priority,
+        -- For secondary ordering within same priority
+        CASE 
+          WHEN car_name = $1 THEN 0 -- Exact match gets highest secondary priority
+          WHEN car_name ILIKE $1 || '%' THEN LENGTH(car_name) -- Shorter prefix matches first
+          ELSE -similarity(unaccent(car_name), unaccent($1)) -- Higher similarity first
+        END as secondary_rank
+      FROM posts
+      WHERE sold_out IS NOT TRUE
+        AND (
+          car_name = $1
+          OR LOWER(unaccent(car_name)) = LOWER(unaccent($1))
+          OR car_name ILIKE $1 || '%'
+          OR car_name ILIKE '%' || $1 || '%'
+          OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
+          OR similarity(unaccent(car_name), unaccent($1)) > 0.15
+        )
+    )
     SELECT DISTINCT ON (LOWER(car_name))
       id,
       car_name
-    FROM posts
-    WHERE sold_out IS NOT TRUE
-      AND (
-        similarity(unaccent(car_name), unaccent($1)) > 0.15
-        OR to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1))
-        OR car_name ILIKE '%' || $1 || '%'
-      )
-    ORDER BY LOWER(car_name), 
-      -- prioritize exact prefix match
-      CASE 
-        WHEN car_name ILIKE $1 || '%' THEN 1
-        WHEN to_tsvector('simple', unaccent(car_name)) @@ plainto_tsquery('simple', unaccent($1)) THEN 2
-        WHEN similarity(unaccent(car_name), unaccent($1)) > 0.15 THEN 3
-        ELSE 4
-      END,
+    FROM search_results
+    ORDER BY 
+      LOWER(car_name), -- First order by normalized car name for DISTINCT ON
+      match_priority ASC,
+      secondary_rank ASC,
       car_name ASC
     LIMIT $2 OFFSET $3;
   `
