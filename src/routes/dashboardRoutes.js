@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   DSchangeCarResquestStatus,
+  DSdeleteCarRequest,
   DSdeleteLikes,
   DSgetAllCarRequests,
   DSgetAllUserCarRequests,
@@ -9,6 +10,7 @@ import {
   DSgetSearchUsers,
   DSgivePostLikes,
   DSpostToPopular,
+  DSupdateCarRequest,
   DSuserToSeller,
 } from '../controllers/dashboardController.js'
 import { DSgetAllUserCarRequestsFn } from '../services/dashboardService.js'
@@ -30,6 +32,8 @@ router.post('/user', DSuserToSeller)
 router.put('/add-likes/:postId', DSgivePostLikes)
 
 router.patch('/car-requests/status/:id', DSchangeCarResquestStatus)
+router.patch('/car-requests/:id', DSupdateCarRequest)
+router.delete('/car-requests/:id', DSdeleteCarRequest)
 
 router.delete('/delete-likes/:postId', DSdeleteLikes)
 

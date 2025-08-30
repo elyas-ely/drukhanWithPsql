@@ -2,6 +2,7 @@
 1: admin should get all rejected, approved, pending car posts
 2: likes are not working for sponsored user profile screen
 3: suggestions search result should filer in the backend
+4: delete user for dashboard
 
 .
 .

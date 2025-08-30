@@ -1,5 +1,6 @@
 import {
   DSchangeCarResquestStatusFn,
+  DSdeleteCarRequestFn,
   DSdeleteLikesFn,
   DSgetAllCarRequestsFn,
   DSgetAllUserCarRequestsFn,
@@ -8,6 +9,7 @@ import {
   DSgetSearchUsersFn,
   DSgivePostLikesFn,
   DSpostToPopularFn,
+  DSupdateCarRequestFn,
   DSuserToSellerFn,
 } from '../services/dashboardService.js'
 
@@ -196,6 +198,35 @@ export async function DSchangeCarResquestStatus(req, res) {
 }
 
 // =======================================
+// ============== UPDATE REQUEST ========
+// =======================================
+export const DSupdateCarRequest = async (req, res) => {
+  const { id } = req.params
+  const data = req.body || {}
+
+  if (!id) {
+    return res.status(400).json({
+      message: 'Missing required parameters: id  (DSupdateCarRequest)',
+    })
+  }
+
+  try {
+    const updatedCarRequest = await DSupdateCarRequestFn(id, data)
+
+    if (!updatedCarRequest) {
+      return res.status(404).json({
+        message: 'Car request not found or not authorized to update',
+      })
+    }
+
+    return res.status(200).json(updatedCarRequest)
+  } catch (error) {
+    console.error('Error in DSupdateCarRequest:', error.stack || error)
+    return res.status(500).json({ message: 'Failed to update car request' })
+  }
+}
+
+// =======================================
 // ============ GIVE A POST LIKES ========
 // =======================================
 export async function DSgivePostLikes(req, res) {
@@ -219,6 +250,38 @@ export async function DSgivePostLikes(req, res) {
     res.status(500).json({
       error: 'Failed to add likes to the post',
     })
+  }
+}
+
+// =======================================
+// ============== DELETE REQUEST ========
+// =======================================
+export const DSdeleteCarRequest = async (req, res) => {
+  const id = req.params.id
+
+  if (!id) {
+    return res.status(400).json({
+      message:
+        'Missing required parameters: id and userId (DSdeleteCarRequest)',
+    })
+  }
+
+  try {
+    const deletedCarRequest = await DSdeleteCarRequestFn(id)
+
+    if (!deletedCarRequest) {
+      return res.status(404).json({
+        message: 'Car request not found or not authorized to delete',
+      })
+    }
+
+    return res.status(200).json({
+      message: 'Car request deleted successfully',
+      data: deletedCarRequest,
+    })
+  } catch (error) {
+    console.error('Error in DSdeleteCarRequest:', error.stack || error)
+    return res.status(500).json({ message: 'Failed to delete car request' })
   }
 }
 

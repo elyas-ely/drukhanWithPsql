@@ -198,6 +198,59 @@ export async function DSchangeCarResquestStatusFn(id, status, rejectionReason) {
 }
 
 // =======================================
+// ============== UPDATE REQUEST =========
+// =======================================
+export const DSupdateCarRequestFn = async (id, data) => {
+  if (!data || Object.keys(data).length === 0) {
+    throw new Error('No fields provided for update')
+  }
+
+  // Allowed fields only
+  const allowedFields = [
+    'car_name',
+    'model',
+    'conditions',
+    'fuel_type',
+    'engine',
+    'transmission',
+    'color',
+    'side',
+    'city',
+    'phone_number',
+    'whatsapp',
+    'information',
+  ]
+
+  const setClauses = []
+  const values = []
+  let index = 1
+
+  for (const [key, value] of Object.entries(data)) {
+    if (allowedFields.includes(key)) {
+      setClauses.push(`${key} = $${index}`)
+      values.push(value)
+      index++
+    }
+  }
+
+  if (setClauses.length === 0) {
+    throw new Error('No valid fields provided for update')
+  }
+
+  // Add WHERE clause params
+  values.push(id)
+
+  const query = `
+    UPDATE car_requests
+    SET ${setClauses.join(', ')},  updated_at = CURRENT_TIMESTAMP
+    WHERE id = $${index}
+    RETURNING *;
+  `
+
+  return await executeQuery(query, values)
+}
+
+// =======================================
 // =========== GIVE POST LIKES ===========
 // =======================================
 export async function DSgivePostLikesFn(postId, numberOfLikes) {
@@ -209,6 +262,17 @@ export async function DSgivePostLikesFn(postId, numberOfLikes) {
   } catch (error) {
     console.error(error)
   }
+}
+
+// =======================================
+// ============== DELETE REQUEST =========
+// =======================================
+export const DSdeleteCarRequestFn = async (id) => {
+  const query = `DELETE FROM car_requests WHERE id = $1`
+
+  const values = [id]
+
+  return await executeQuery(query, values)
 }
 
 // =======================================
