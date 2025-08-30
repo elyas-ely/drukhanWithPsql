@@ -14,8 +14,8 @@ const router = express.Router()
 // ============== GET ROUTES =============
 // =======================================
 router.get('/', getAllCarRequests)
-router.get('/user_requests', getAllUserCarRequests)
 router.get('/:id', getCarRequestById)
+router.get('/user_requests', getAllUserCarRequests)
 
 // =======================================
 // ============== POST ROUTES ============

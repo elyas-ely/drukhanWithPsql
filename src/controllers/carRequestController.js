@@ -66,8 +66,8 @@ export const getAllUserCarRequests = async (req, res) => {
 // ============== GET REQUEST BY ID ======
 // =======================================
 export const getCarRequestById = async (req, res) => {
-  const id = req.params.id?.trim()
-  const userId = req.query.userId?.trim()
+  const { id } = req.params
+  const { userId } = req.query
 
   if (!id || !userId) {
     return res.status(400).json({

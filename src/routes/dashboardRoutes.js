@@ -13,7 +13,6 @@ import {
   DSupdateCarRequest,
   DSuserToSeller,
 } from '../controllers/dashboardController.js'
-import { DSgetAllUserCarRequestsFn } from '../services/dashboardService.js'
 
 const router = express.Router()
 

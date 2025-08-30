@@ -177,11 +177,12 @@ export async function DSgetCarRequestByIdFn(id) {
     FROM car_requests cr 
     INNER JOIN users u 
     ON cr.user_id = u.user_id
-    WHERE cr.id = $1`
+    WHERE cr.id = $1 `
 
   const values = [id]
 
-  return await executeQuery(query, values)
+  const rows = await executeQuery(query, values)
+  return rows[0]
 }
 
 // =======================================
