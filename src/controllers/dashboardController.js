@@ -2,6 +2,7 @@ import {
   DSchangeCarResquestStatusFn,
   DSdeleteLikesFn,
   DSgetAllCarRequestsFn,
+  DSgetAllUserCarRequestsFn,
   DSgetAllUsersFn,
   DSgetCarRequestByIdFn,
   DSgetSearchUsersFn,
@@ -109,6 +110,30 @@ export async function DSgetAllCarRequests(req, res) {
     console.error('Error in DSgetAllCarRequests:', err)
     return res.status(500).json({
       message: 'Failed to retrieve car requests (DSgetAllCarRequests)',
+    })
+  }
+}
+
+// =======================================
+// ============== GET USER REQUESTS ======
+// =======================================
+export const DSgetAllUserCarRequests = async (req, res) => {
+  const { status = 'all' } = req.query
+  const page = parseInt(req.query?.page) || 1
+  const limit = 12
+  const offset = (page - 1) * limit
+
+  try {
+    const posts = await DSgetAllUserCarRequestsFn(status, limit, offset)
+
+    res.status(200).json({
+      posts,
+      nextPage: posts.length < limit ? null : page + 1,
+    })
+  } catch (err) {
+    console.error('Error in DSgetAllUserCarRequests:', err)
+    return res.status(500).json({
+      message: 'Failed to retrieve car requests (DSgetAllUserCarRequests)',
     })
   }
 }

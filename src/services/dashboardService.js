@@ -138,6 +138,36 @@ export async function DSgetAllCarRequestsFn(city) {
 }
 
 // =======================================
+// ============== GET ALL USER REQUESTS ==
+// =======================================
+export const DSgetAllUserCarRequestsFn = async (status, limit, offset) => {
+  // Base query and parameters
+  let query = `
+    SELECT cr.*, 
+           u.username,
+           u.profile
+      FROM car_requests cr 
+      INNER JOIN users u 
+        ON cr.user_id = u.user_id`
+
+  const values = []
+
+  // Add status filter if status is NOT 'all'
+  if (status && status.toLowerCase() !== 'all') {
+    query += ` AND cr.status = $1`
+    values.push(status)
+  }
+
+  // Always order by created_at DESC
+  query += ` ORDER BY cr.created_at DESC`
+
+  query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
+  values.push(limit, offset)
+
+  return await executeQuery(query, values)
+}
+
+// =======================================
 // ============== GET REQUEST BY ID ======
 // =======================================
 export async function DSgetCarRequestByIdFn(id) {
