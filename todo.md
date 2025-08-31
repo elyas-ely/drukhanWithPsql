@@ -1,8 +1,7 @@
 ================ TODO TASKS ==============
-1: admin should get all rejected, approved, pending car posts
-2: likes are not working for sponsored user profile screen
-3: suggestions search result should filer in the backend
-4: delete user for dashboard
+
+1: delete user for dashboard
+2: on delete car request the catch deletes should be in fronend drukshan app
 
 .
 .
@@ -30,4 +29,5 @@
 ================= OTHERS ====================
 1: advence dashboard
 2: backend optimization / auth / middlewares
-3:
+
+postId, images[0], userId,

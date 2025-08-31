@@ -9,6 +9,7 @@ import {
   DSgetSearchUsersFn,
   DSgivePostLikesFn,
   DSpostToPopularFn,
+  DSupdateBannerFn,
   DSupdateCarRequestFn,
   DSuserToSellerFn,
 } from '../services/dashboardService.js'
@@ -309,5 +310,27 @@ export async function DSdeleteLikes(req, res) {
     res.status(500).json({
       error: 'Failed to delete likes to the post',
     })
+  }
+}
+
+export const DSupdateBanner = async (req, res) => {
+  const { id } = req.params
+  const { userId, postId, image } = req.body
+
+  if (!id || !userId || !postId || !image) {
+    return res.status(400).json({ message: 'All fields are required' })
+  }
+
+  try {
+    const banner = await DSupdateBannerFn(userId, postId, image, id)
+
+    if (!banner) {
+      return res.status(404).json({ message: 'Banner not found' })
+    }
+
+    res.status(200).json(banner)
+  } catch (err) {
+    console.error('Error updating banner:', err)
+    res.status(500).json({ error: 'Failed to update banner' })
   }
 }

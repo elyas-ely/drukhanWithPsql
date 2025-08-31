@@ -292,3 +292,20 @@ export async function DSdeleteLikesFn(postId, numberOfLikes) {
   `
   return await executeQuery(query, [postId, numberOfLikes])
 }
+
+export async function DSupdateBannerFn(userId, postId, image, id) {
+  const query = `
+    UPDATE banners
+    SET 
+      user_id = $1,
+      post_id = $2,
+      image = $3,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $4
+    RETURNING *;
+  `
+
+  const values = [userId, postId, image, id]
+  const data = await executeQuery(query, values)
+  return data[0]
+}

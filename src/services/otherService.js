@@ -3,7 +3,7 @@ import { executeQuery } from '../utils/helpingFunctions.js'
 // =======================================
 // ============== GET ALL BANNERS ==========
 // =======================================
-const getAllBannersFn = async () => {
+export async function getAllBannersFn() {
   const query = `SELECT b.*, 
     u.username, 
     u.city,
@@ -11,14 +11,12 @@ const getAllBannersFn = async () => {
     FROM banners b 
     INNER JOIN users u 
     ON b.user_id = u.user_id
-    ORDER BY b.id DESC`
+    ORDER BY b.updated_at DESC`
 
   return await executeQuery(query)
 }
 
-const getAllNotificationsFn = async () => {
+export async function getAllNotificationsFn() {
   const query = `SELECT * FROM notifications`
   return await executeQuery(query)
 }
-
-export { getAllBannersFn, getAllNotificationsFn }

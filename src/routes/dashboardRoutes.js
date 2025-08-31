@@ -10,6 +10,7 @@ import {
   DSgetSearchUsers,
   DSgivePostLikes,
   DSpostToPopular,
+  DSupdateBanner,
   DSupdateCarRequest,
   DSuserToSeller,
 } from '../controllers/dashboardController.js'
@@ -32,6 +33,7 @@ router.put('/add-likes/:postId', DSgivePostLikes)
 
 router.patch('/car-requests/status/:id', DSchangeCarResquestStatus)
 router.patch('/car-requests/:id', DSupdateCarRequest)
+router.patch('/banners/:id', DSupdateBanner)
 router.delete('/car-requests/:id', DSdeleteCarRequest)
 
 router.delete('/delete-likes/:postId', DSdeleteLikes)
