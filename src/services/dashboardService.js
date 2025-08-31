@@ -293,19 +293,33 @@ export async function DSdeleteLikesFn(postId, numberOfLikes) {
   return await executeQuery(query, [postId, numberOfLikes])
 }
 
-export async function DSupdateBannerFn(userId, postId, image, id) {
-  const query = `
-    UPDATE banners
-    SET 
-      user_id = $1,
-      post_id = $2,
-      image = $3,
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = $4
-    RETURNING *;
-  `
+export async function DScreateBannerFn(postId) {
+  const postData = await executeQuery(
+    `SELECT user_id, images FROM posts WHERE id = $1`,
+    [postId]
+  )
 
-  const values = [userId, postId, image, id]
-  const data = await executeQuery(query, values)
-  return data[0]
+  if (!postData || postData.length === 0) throw new Error('Post not found')
+
+  const { user_id, images } = postData[0]
+  const firstImage = Array.isArray(images)
+    ? images[0]
+    : typeof images === 'string'
+      ? images.split(',')[0].trim()
+      : null
+
+  const newBanner = await executeQuery(
+    `
+      INSERT INTO banners (user_id, post_id, image)
+      VALUES ($1, $2, $3)
+      RETURNING *;
+    `,
+    [user_id, postId, firstImage]
+  )
+
+  await executeQuery(`UPDATE posts SET sponsored = TRUE WHERE id = $1`, [
+    postId,
+  ])
+
+  return newBanner[0] || null
 }

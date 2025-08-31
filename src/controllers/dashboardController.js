@@ -1,5 +1,6 @@
 import {
   DSchangeCarResquestStatusFn,
+  DScreateBannerFn,
   DSdeleteCarRequestFn,
   DSdeleteLikesFn,
   DSgetAllCarRequestsFn,
@@ -9,7 +10,6 @@ import {
   DSgetSearchUsersFn,
   DSgivePostLikesFn,
   DSpostToPopularFn,
-  DSupdateBannerFn,
   DSupdateCarRequestFn,
   DSuserToSellerFn,
 } from '../services/dashboardService.js'
@@ -313,16 +313,15 @@ export async function DSdeleteLikes(req, res) {
   }
 }
 
-export const DSupdateBanner = async (req, res) => {
-  const { id } = req.params
-  const { userId, postId, image } = req.body
+export const DScreateBanner = async (req, res) => {
+  const { postId } = req.query
 
-  if (!id || !userId || !postId || !image) {
-    return res.status(400).json({ message: 'All fields are required' })
+  if (!postId) {
+    return res.status(400).json({ message: 'postId is required' })
   }
 
   try {
-    const banner = await DSupdateBannerFn(userId, postId, image, id)
+    const banner = await DScreateBannerFn(postId)
 
     if (!banner) {
       return res.status(404).json({ message: 'Banner not found' })
