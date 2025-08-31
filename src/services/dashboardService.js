@@ -277,6 +277,17 @@ export const DSdeleteCarRequestFn = async (id) => {
 }
 
 // =======================================
+// ============== DELETE BANNER =========
+// =======================================
+export const DSdeleteBannerFn = async (id) => {
+  const query = `DELETE FROM banners WHERE id = $1`
+
+  const values = [id]
+
+  return await executeQuery(query, values)
+}
+
+// =======================================
 // ============ DELETE LIKES =============
 // =======================================
 export async function DSdeleteLikesFn(postId, numberOfLikes) {

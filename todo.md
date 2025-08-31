@@ -23,6 +23,7 @@
 6: sponsored users
 7: rewards
 8: Report and blocking should work
+9: Error handling with codes and messages
 .
 .
 .

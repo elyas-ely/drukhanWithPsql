@@ -1,6 +1,7 @@
 import {
   DSchangeCarResquestStatusFn,
   DScreateBannerFn,
+  DSdeleteBannerFn,
   DSdeleteCarRequestFn,
   DSdeleteLikesFn,
   DSgetAllCarRequestsFn,
@@ -282,6 +283,37 @@ export const DSdeleteCarRequest = async (req, res) => {
     })
   } catch (error) {
     console.error('Error in DSdeleteCarRequest:', error.stack || error)
+    return res.status(500).json({ message: 'Failed to delete car request' })
+  }
+}
+
+// =======================================
+// ============== DELETE REQUEST ========
+// =======================================
+export async function DSdeleteBanner(req, res) {
+  const id = req.params.id
+
+  if (!id) {
+    return res.status(400).json({
+      message: 'Missing required parameters: id and userId (DSdeleteBanner)',
+    })
+  }
+
+  try {
+    const deleteBanner = await DSdeleteBannerFn(id)
+
+    if (!deleteBanner) {
+      return res.status(404).json({
+        message: 'banner not found or not authorized to delete',
+      })
+    }
+
+    return res.status(200).json({
+      message: 'banner deleted successfully',
+      data: deleteBanner,
+    })
+  } catch (error) {
+    console.error('Error in DSdeleteBanner:', error.stack || error)
     return res.status(500).json({ message: 'Failed to delete car request' })
   }
 }

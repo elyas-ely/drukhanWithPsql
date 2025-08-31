@@ -2,6 +2,7 @@ import express from 'express'
 import {
   DSchangeCarResquestStatus,
   DScreateBanner,
+  DSdeleteBanner,
   DSdeleteCarRequest,
   DSdeleteLikes,
   DSgetAllCarRequests,
@@ -45,5 +46,6 @@ router.patch('/car-requests/:id', DSupdateCarRequest)
 // =======================================
 router.delete('/car-requests/:id', DSdeleteCarRequest)
 router.delete('/delete-likes/:postId', DSdeleteLikes)
+router.delete('/banners/:id', DSdeleteBanner)
 
 export default router

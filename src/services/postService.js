@@ -60,7 +60,7 @@ export const getPostByIdFn = async (postId, userId) => {
 }
 
 // =======================================
-// ============== GET POST BY ID =========
+// ============== GET SAVED BY ID =========
 // =======================================
 export const getSavedPostFn = async (userId, limit, offset) => {
   const query = `SELECT 
