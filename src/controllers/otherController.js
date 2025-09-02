@@ -50,7 +50,7 @@ export const getAppConfig = async (req, res) => {
         latestVersion: '1.3.0',
       },
       ios: {
-        latestVersion: '1.2.10',
+        latestVersion: '1.2.11',
       },
       underWorking: false,
     }
