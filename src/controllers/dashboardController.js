@@ -256,7 +256,7 @@ export async function DSgivePostLikes(req, res) {
 }
 
 // =======================================
-// ============== DELETE REQUEST ========
+// ============== DELETE REQUEST =========
 // =======================================
 export const DSdeleteCarRequest = async (req, res) => {
   const id = req.params.id
@@ -288,7 +288,7 @@ export const DSdeleteCarRequest = async (req, res) => {
 }
 
 // =======================================
-// ============== DELETE REQUEST ========
+// ============== DELETE REQUEST =========
 // =======================================
 export async function DSdeleteBanner(req, res) {
   const id = req.params.id

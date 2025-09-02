@@ -279,12 +279,33 @@ export const DSdeleteCarRequestFn = async (id) => {
 // =======================================
 // ============== DELETE BANNER =========
 // =======================================
+// export const DSdeleteBannerFn = async (id) => {
+//   const query = `DELETE FROM banners WHERE id = $1`
+
+//   const values = [id]
+
+//   return await executeQuery(query, values)
+// }
+
 export const DSdeleteBannerFn = async (id) => {
-  const query = `DELETE FROM banners WHERE id = $1`
+  if (!id) throw new Error('Invalid banner id')
 
-  const values = [id]
+  const bannerRows = await executeQuery(
+    `SELECT post_id FROM banners WHERE id = $1`,
+    [id]
+  )
+  if (bannerRows.length === 0) {
+    throw new Error('Banner not found')
+  }
+  const postId = bannerRows[0].post_id
 
-  return await executeQuery(query, values)
+  await executeQuery(`DELETE FROM banners WHERE id = $1`, [id])
+
+  await executeQuery(`UPDATE posts SET sponsored = popular WHERE id = $1`, [
+    postId,
+  ])
+
+  return { success: true }
 }
 
 // =======================================
