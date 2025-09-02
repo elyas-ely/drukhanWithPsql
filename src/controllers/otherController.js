@@ -47,10 +47,10 @@ export const getAppConfig = async (req, res) => {
   try {
     const data = {
       android: {
-        latestVersion: '1.2.11',
+        latestVersion: '1.3.0',
       },
       ios: {
-        latestVersion: '1.2.11',
+        latestVersion: '1.2.10',
       },
       underWorking: false,
     }
